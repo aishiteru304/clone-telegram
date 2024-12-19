@@ -4,12 +4,10 @@ import LoginSchema, { LoginFormValues } from "../../schemas/loginSchema";
 import { Button, Form, Input, message } from "antd";
 import { login } from "./api";
 import useLocalStorage from "../../hooks/useLocalStorage";
-import { ACCESSTOKEN_KEY } from "../../app/constant";
-import { useNavigate } from "react-router-dom";
+import { ACCESSTOKEN_KEY, INFORMATION_KEY } from "../../app/constant";
 
 const LoginPage = () => {
     const { setLocalStorage } = useLocalStorage()
-    const navigate = useNavigate()
     const { control, handleSubmit, formState: { errors } } = useForm({
         resolver: yupResolver(LoginSchema),
     });
@@ -18,7 +16,8 @@ const LoginPage = () => {
         login(data)
             .then(res => {
                 setLocalStorage({ value: { accessToken: res.data.data.accessToken }, key: ACCESSTOKEN_KEY })
-                navigate("/")
+                setLocalStorage({ value: { userId: res.data.data.id, fullName: res.data.data.fullName }, key: INFORMATION_KEY })
+                window.location.href = "/"
             })
             .catch(err => {
                 if (err?.status == 401) {

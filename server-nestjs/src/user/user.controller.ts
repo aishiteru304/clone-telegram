@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
 import { UserService } from './user.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginDto } from './dto/login.dto';
@@ -21,6 +21,11 @@ export class UserController {
     @Post("friend")
     async addFriend(@Req() req: Request, @Body() addFrienđto: AddFriendDto) {
         return this.userService.addFriend(req, addFrienđto);
+    }
+
+    @Get('information/:id')
+    async getInformation(@Param('id') id: string) {
+        return this.userService.getInformationById(id);
     }
 
 }

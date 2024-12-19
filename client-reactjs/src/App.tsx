@@ -2,6 +2,7 @@ import { Route, Routes } from "react-router-dom"
 import MainLayout from "./layouts/main-layout"
 import HomePage from "./pages/home"
 import LoginPage from "./pages/login"
+import ChatPage from "./pages/chat"
 
 function App() {
 
@@ -9,10 +10,7 @@ function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/" element={<MainLayout />}>
-        {/* <Route path="/users/create" element={<CreateStaff />} />
-        <Route path="/users/:id" element={<EditStaff />} />
-        <Route path="/users" element={<StaffManagement />} />
-        <Route path="/categories" element={<CategoryManagement />} /> */}
+        <Route path="/conversation/:id" element={<ChatPage />} />
         <Route index element={<HomePage />} />
       </Route>
     </Routes>

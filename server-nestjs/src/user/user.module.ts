@@ -30,6 +30,7 @@ export class UserModule {
       .apply(JwtAuthUserMiddleware)
       .forRoutes(
         { path: 'user/friend', method: RequestMethod.POST },
+        { path: 'user/information/:id', method: RequestMethod.GET },
         { path: 'user/:id', method: RequestMethod.DELETE },
       );
   }

@@ -1,17 +1,20 @@
 import { IoMenu } from "react-icons/io5";
-import { io } from "socket.io-client";
 import useLocalStorage from "../../hooks/useLocalStorage";
 import { useEffect, useState } from "react";
 import { ACCESSTOKEN_KEY } from "../../app/constant";
+import { Link, useLocation } from "react-router-dom";
+import useHandleResponseError from "../../hooks/handleResponseError";
+import socket from "../../socket";
 
 const SearchComponent = () => {
-    const socket = io('http://localhost:3000');
     const { getLocalStorage } = useLocalStorage()
+    const accessToken = getLocalStorage(ACCESSTOKEN_KEY)
     const [friendList, setFriendList] = useState([])
     const [isLoading, setIsLoading] = useState(true)
+    const location = useLocation()
+    const handleResponseError = useHandleResponseError()
 
     useEffect(() => {
-        const accessToken = getLocalStorage(ACCESSTOKEN_KEY)
         if (accessToken) {
             // Gửi thông điệp đến server để lấy danh sách bạn bè
             socket.emit('getFriends', accessToken.accessToken);
@@ -25,11 +28,12 @@ const SearchComponent = () => {
 
         // Lắng nghe sự kiện lỗi nếu có
         socket.on('error', (error) => {
-            console.error('Lỗi:', error.message);
+            handleResponseError(error)
             setIsLoading(false)
         });
 
     }, [])
+
     return (
         <section>
             <search className="flex gap-2 items-center ">
@@ -46,10 +50,12 @@ const SearchComponent = () => {
                     <div className="mt-4">
                         {
                             friendList.map((friend: any) => (
-                                <li key={friend._id} className=" list-none flex gap-2 items-center p-2 cursor-pointer hover:bg-slate-300 rounded-lg transition-all duration-300 ease-in-out ">
-                                    <div className="h-10 w-10 rounded-full bg-green-500"></div>
+                                <Link to={`/conversation/${friend._id}`} key={friend._id} className={`flex gap-2 items-center p-2 cursor-pointer hover:bg-slate-300 rounded-lg transition-all duration-300 ease-in-out ${location.pathname == `/conversation/${friend._id}` ? "bg-primary text-white hover:bg-primary" : ""}`}>
+                                    <div className="h-10 w-10 rounded-full bg-green-500 flex items-center justify-center text-white">
+                                        {friend.fullName.charAt(0).toUpperCase()}
+                                    </div>
                                     <span>{friend.fullName}</span>
-                                </li>
+                                </Link>
                             ))
                         }
                     </div>
