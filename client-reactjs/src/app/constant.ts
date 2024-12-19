@@ -1,0 +1,1 @@
+export const ACCESSTOKEN_KEY = "telegram_access_token"

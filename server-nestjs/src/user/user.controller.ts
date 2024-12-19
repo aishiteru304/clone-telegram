@@ -1,8 +1,8 @@
-import { Body, Controller, Delete, Get, Param, Post, Req } from '@nestjs/common';
+import { Body, Controller, Post, Req } from '@nestjs/common';
 import { UserService } from './user.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginDto } from './dto/login.dto';
-import { User } from './schemas/user.schema';
+import { AddFriendDto } from './dto/add-friend.dto';
 
 @Controller('user')
 export class UserController {
@@ -18,23 +18,9 @@ export class UserController {
         return this.userService.login(loginDto);
     }
 
-    @Post('admin/login')
-    async adminLogin(@Body() loginDto: LoginDto) {
-        return this.userService.adminLogin(loginDto);
+    @Post("friend")
+    async addFriend(@Req() req: Request, @Body() addFrienđto: AddFriendDto) {
+        return this.userService.addFriend(req, addFrienđto);
     }
 
-    @Get()
-    async getAllUsers(): Promise<User[]> {
-        return this.userService.getAllUsers();
-    }
-
-    @Get('profile')
-    async getProfile(@Req() req: Request): Promise<User> {
-        return this.userService.getProfile(req);
-    }
-
-    @Delete(':id')
-    async deleteUser(@Param('id') id: string) {
-        return this.userService.deleteUser(id);
-    }
 }

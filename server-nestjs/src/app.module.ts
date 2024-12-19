@@ -4,8 +4,8 @@ import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
-import { ProductModule } from './product/product.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { FriendsGateway } from './friends/friends.gateway';
 
 @Module({
   imports: [
@@ -15,10 +15,9 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
     }),
     MongooseModule.forRoot(process.env.DATABASE_URL),
     UserModule,
-    ProductModule,
-    CloudinaryModule
+    CloudinaryModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, FriendsGateway],
 })
 export class AppModule { }

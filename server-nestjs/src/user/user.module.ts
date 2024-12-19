@@ -5,7 +5,6 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './schemas/user.schema';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtAuthAdminMiddleware } from 'src/middlewares/authAdmin';
 import { JwtAuthUserMiddleware } from 'src/middlewares/authUser';
 
 @Module({
@@ -21,19 +20,16 @@ import { JwtAuthUserMiddleware } from 'src/middlewares/authUser';
     }),
   ],
   providers: [UserService],
-  controllers: [UserController]
+  controllers: [UserController],
+  exports: [UserService]
+
 })
 export class UserModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(JwtAuthAdminMiddleware)
-      .forRoutes(
-        { path: 'user', method: RequestMethod.GET },
-      );
-    consumer
       .apply(JwtAuthUserMiddleware)
       .forRoutes(
-        { path: 'user/profile', method: RequestMethod.GET },
+        { path: 'user/friend', method: RequestMethod.POST },
         { path: 'user/:id', method: RequestMethod.DELETE },
       );
   }
