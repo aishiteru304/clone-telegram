@@ -7,6 +7,7 @@ import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { AddFriendDto } from './dto/add-friend.dto';
+import { FriendRequestDto } from './dto/friend-request.dto';
 
 @Injectable()
 export class UserService {
@@ -105,14 +106,14 @@ export class UserService {
             }
 
             // Kiểm tra xem userId đã là bạn của user chưa
-            if (existingSender.friends.includes(existingReceiver)) {
+            if (existingSender.friends.some(friendId => friendId.toString() === userId)) {
                 throw new HttpException('Already friends', HttpStatus.BAD_REQUEST);
             }
 
-            existingReceiver.friends.push(existingSender);
+            existingReceiver.friends.unshift(existingSender);
             await existingReceiver.save();
 
-            existingSender.friends.push(existingReceiver);
+            existingSender.friends.unshift(existingReceiver);
             await existingSender.save();
 
             // Trả về phản hồi thành công
@@ -159,6 +160,36 @@ export class UserService {
         }
     }
 
+    async getFriendsRequest(accessToken: string) {
+        try {
+            // Giải mã token và lấy userId
+            const decodedToken = this.jwtService.decode(accessToken);
+
+            if (!decodedToken || !decodedToken.id) {
+                throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
+            }
+
+            // Truy vấn người dùng từ cơ sở dữ liệu và populate trường 'friends'
+            const user = await this.userModel
+                .findById(decodedToken.id)
+                .populate('friendsRequest', 'fullName')
+                .exec();
+
+
+            if (!user) {
+                throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+            }
+
+            return user.friendsRequest;
+        } catch (error) {
+            // Kiểm tra nếu lỗi là một HttpException
+            if (error instanceof HttpException) {
+                throw error;
+            }
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     async getInformationById(id: string) {
         try {
             // Truy vấn người dùng từ cơ sở dữ liệu và populate trường 'friends'
@@ -171,6 +202,47 @@ export class UserService {
             }
 
             return user;
+        } catch (error) {
+            // Kiểm tra nếu lỗi là một HttpException
+            if (error instanceof HttpException) {
+                throw error;
+            }
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    async addFriendRequest(req: Request, friendRequestDto: FriendRequestDto) {
+
+        try {
+            const sender = req["user"]
+            // Lấy dữ liệu từ body
+            const { userId } = friendRequestDto;
+
+
+            const receiverObjectId = new Types.ObjectId(userId);
+            const senderObjectId = new Types.ObjectId(sender.id);
+
+            // Kiểm tra user đã tồn tại chưa 
+            const existingSender = await this.userModel.findById(senderObjectId);
+            const existingReceiver = await this.userModel.findById(receiverObjectId);
+            if (!existingSender || !existingReceiver) {
+                throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+            }
+
+            // Kiểm tra xem userId đã là bạn của user chưa
+
+            if (existingSender.friends.some(friendId => friendId.toString() === userId)) {
+                throw new HttpException('Already friends', HttpStatus.BAD_REQUEST);
+            }
+
+            existingReceiver.friendsRequest.unshift(existingSender);
+            await existingReceiver.save();
+
+            // Trả về phản hồi thành công
+            return {
+                statusCode: HttpStatus.OK,
+                message: 'Friend added request successfully.',
+            };
         } catch (error) {
             // Kiểm tra nếu lỗi là một HttpException
             if (error instanceof HttpException) {

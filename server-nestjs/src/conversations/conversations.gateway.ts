@@ -42,6 +42,22 @@ export class ConversationsGateway {
     }
   }
 
+  // Hàm lấy danh sách lời mời kết bạn
+  @SubscribeMessage('getFriendsRequest')
+  async handleGetFriendsRequest(@MessageBody() accessToken: string, @ConnectedSocket() client: Socket) {
+    try {
+      // Lấy danh sách lời mời từ UserService
+      const friendsRequest = await this.userService.getFriendsRequest(accessToken);
+
+      // Gửi danh sách lời mời cho client
+      client.emit('friendsRequestList', friendsRequest);
+    } catch (error) {
+      // Xử lý lỗi nếu có
+      client.emit('error', error);
+
+    }
+  }
+
   // Hàm kiểm tra user có online không
   @SubscribeMessage('isUserOnline')
   handleIsUserOnline(@MessageBody() userId: string, @ConnectedSocket() client: Socket) {
@@ -66,4 +82,5 @@ export class ConversationsGateway {
     }
   }
 }
+
 

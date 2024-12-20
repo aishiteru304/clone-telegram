@@ -3,6 +3,7 @@ import { UserService } from './user.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { AddFriendDto } from './dto/add-friend.dto';
+import { FriendRequestDto } from './dto/friend-request.dto';
 
 @Controller('user')
 export class UserController {
@@ -19,13 +20,18 @@ export class UserController {
     }
 
     @Post("friend")
-    async addFriend(@Req() req: Request, @Body() addFrienđto: AddFriendDto) {
-        return this.userService.addFriend(req, addFrienđto);
+    async addFriend(@Req() req: Request, @Body() addFriendDto: AddFriendDto) {
+        return this.userService.addFriend(req, addFriendDto);
     }
 
     @Get('information/:id')
     async getInformation(@Param('id') id: string) {
         return this.userService.getInformationById(id);
+    }
+
+    @Post("friend/request")
+    async addFriendRequest(@Req() req: Request, @Body() friendRequestDto: FriendRequestDto) {
+        return this.userService.addFriendRequest(req, friendRequestDto);
     }
 
 }
