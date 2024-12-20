@@ -20,7 +20,7 @@ export class ConversationsGateway {
       return;
     }
 
-    console.log(`Client connected: ${client.id}, UserId: ${userId}`);
+    // console.log(`Client connected: ${client.id}, UserId: ${userId}`);
     this.connectedUsers.set(client.id, userId);
     // Gửi thông tin trạng thái online cho tất cả client khác
     this.emitUserOnlineStatus(userId, true);
@@ -61,7 +61,7 @@ export class ConversationsGateway {
     const userId = this.connectedUsers.get(client.id);
 
     if (userId) {
-      console.log(`Client disconnected: ${client.id}, UserId: ${userId}`);
+      // console.log(`Client disconnected: ${client.id}, UserId: ${userId}`);
       this.connectedUsers.delete(client.id);
     }
   }

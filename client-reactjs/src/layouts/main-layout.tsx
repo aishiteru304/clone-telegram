@@ -1,5 +1,5 @@
 import { Outlet, useNavigate } from "react-router-dom"
-import SearchComponent from "../components/common/search"
+import SideBar from "../components/common/side-bar"
 import useLocalStorage from "../hooks/useLocalStorage"
 import { useEffect } from "react"
 import { ACCESSTOKEN_KEY } from "../app/constant"
@@ -18,7 +18,7 @@ const MainLayout = () => {
     return (
         <main className="flex h-screen">
             <section className="w-[30%] p-4">
-                <SearchComponent />
+                <SideBar />
             </section>
             <section className="w-[70%] bg-[url('/bg.jpg')] bg-cover bg-center">
                 <Outlet />
