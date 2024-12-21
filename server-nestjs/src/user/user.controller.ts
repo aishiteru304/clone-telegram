@@ -29,9 +29,19 @@ export class UserController {
         return this.userService.getInformationById(id);
     }
 
-    @Post("friend/request")
-    async addFriendRequest(@Req() req: Request, @Body() friendRequestDto: FriendRequestDto) {
-        return this.userService.addFriendRequest(req, friendRequestDto);
+    @Get('information/id/:phone')
+    async getIdByPhoneNumber(@Req() req: Request, @Param('phone') phone: string) {
+        return this.userService.getIdPhoneNumber(req, phone);
+    }
+
+    // @Post("friend/request")
+    // async addFriendRequest(@Req() req: Request, @Body() friendRequestDto: FriendRequestDto) {
+    //     return this.userService.addFriendRequest(req, friendRequestDto);
+    // }
+
+    @Get('relationship/:id')
+    async checkRelationship(@Req() req: Request, @Param('id') id: string) {
+        return this.userService.checkRelationship(req, id);
     }
 
 }

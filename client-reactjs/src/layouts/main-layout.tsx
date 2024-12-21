@@ -17,7 +17,7 @@ const MainLayout = () => {
 
     return (
         <main className="flex h-screen">
-            <section className="w-[30%] p-4">
+            <section className="w-[30%] px-4">
                 <SideBar />
             </section>
             <section className="w-[70%] bg-[url('/bg.jpg')] bg-cover bg-center">

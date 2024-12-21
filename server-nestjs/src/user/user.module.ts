@@ -32,7 +32,8 @@ export class UserModule {
         { path: 'user/friend', method: RequestMethod.POST },
         { path: 'user/friend/request', method: RequestMethod.POST },
         { path: 'user/information/:id', method: RequestMethod.GET },
-        { path: 'user/:id', method: RequestMethod.DELETE },
+        { path: 'user/information/id/:phone', method: RequestMethod.GET },
+        { path: 'user/relationship/:id', method: RequestMethod.GET },
       );
   }
 

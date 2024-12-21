@@ -5,11 +5,18 @@ import { ACCESSTOKEN_KEY, INFORMATION_KEY } from "../../app/constant";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import useHandleResponseError from "../../hooks/handleResponseError";
 import socket from "../../socket";
-import { Drawer } from "antd";
+import { Button, Drawer, Form, Input, message } from "antd";
 import { IoIosLogOut } from "react-icons/io";
 import FriendRequest from "./friend-request";
+import SearchSchema, { SearchValues } from "../../schemas/searchSchema";
+import { Controller, useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { getIdByPhoneNumber } from "./api";
 
 const SideBar = () => {
+    const { control, handleSubmit, formState: { errors }, reset } = useForm({
+        resolver: yupResolver(SearchSchema),
+    });
     const { getLocalStorage, removeLocalStorage } = useLocalStorage()
     const accessToken = getLocalStorage(ACCESSTOKEN_KEY)
     const [friendList, setFriendList] = useState([])
@@ -19,6 +26,7 @@ const SideBar = () => {
     const [isOpenDrawer, setIsOpenDrawer] = useState<boolean>(false)
     const information = getLocalStorage(INFORMATION_KEY)
     const navigate = useNavigate()
+
 
     useEffect(() => {
         if (accessToken) {
@@ -46,12 +54,44 @@ const SideBar = () => {
         navigate("/login")
     }
 
+    const handleSearch = (data: SearchValues) => {
+        getIdByPhoneNumber(data)
+            .then(res => {
+                reset()
+                navigate(`/conversation/${res.data?._id}`)
+            })
+            .catch(err => {
+                if (err?.status == 404) message.error("User not found")
+                handleResponseError(err)
+
+            })
+    }
+
     return (
         <>
             <section>
                 <search className="flex gap-2 items-center ">
                     <IoMenu className="text-2xl cursor-pointer" onClick={() => setIsOpenDrawer(true)} />
-                    <input placeholder="Search" className="w-full bg-gray-200 outline-none pl-4 py-2 rounded-3xl" />
+                    <Form onFinish={handleSubmit(handleSearch)} layout="vertical" className="items-center mt-6 flex-grow relative">
+                        <Form.Item
+                            validateStatus={errors.phone ? 'error' : ''}
+                            help={errors.phone?.message}
+                        >
+                            <Controller
+                                name="phone"
+                                control={control}
+                                render={({ field }) => <Input {...field} placeholder="Enter phone number..." className='h-12' />}
+                            />
+                        </Form.Item>
+
+
+
+                        <Form.Item className=" absolute top-0 right-0">
+                            <Button type="primary" htmlType="submit" className='h-12'>
+                                Search
+                            </Button>
+                        </Form.Item>
+                    </Form>
                 </search>
                 <div>
                     {
@@ -60,7 +100,7 @@ const SideBar = () => {
                     }
                     {
                         !isLoading && friendList.length != 0 &&
-                        <div className="mt-4">
+                        <div>
                             {
                                 friendList.map((friend: any) => (
                                     <Link to={`/conversation/${friend._id}`} key={friend._id} className={`flex gap-2 items-center p-2 cursor-pointer hover:bg-slate-300 rounded-lg transition-all duration-300 ease-in-out ${location.pathname == `/conversation/${friend._id}` ? "bg-primary text-white hover:bg-primary" : ""}`}>

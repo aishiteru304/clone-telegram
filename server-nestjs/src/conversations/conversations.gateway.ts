@@ -1,6 +1,6 @@
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import { Server } from 'http';
-import { Socket } from 'socket.io';
+import { Socket, Server } from 'socket.io';
+import { FriendRequestDto } from 'src/user/dto/friend-request.dto';
 import { UserService } from 'src/user/user.service';
 
 @WebSocketGateway({ cors: true })
@@ -58,6 +58,35 @@ export class ConversationsGateway {
     }
   }
 
+  // Hàm gửi lời mời kết bạn
+  @SubscribeMessage('addFriendRequest')
+  async handleAddFriendRequest(@MessageBody() friendRequestDto: FriendRequestDto, @ConnectedSocket() client: Socket) {
+    try {
+      const response = await this.userService.addFriendRequest(friendRequestDto);
+      if (response.statusCode == 200) {
+
+        // Tìm socketId của senderId
+        const socketId = [...this.connectedUsers.entries()].find(
+          ([_, userId]) => userId == friendRequestDto.userId,
+        )?.[0];
+
+        // Phát lại phản hồi tới client
+        client.emit('relationship', { isFriend: false, isSendRequest: true, isReceiverRequest: false, noRelationship: false });
+        // Gửi sự kiện tới client cụ thể
+        this.server.to(socketId).emit('relationship', {
+          isFriend: false,
+          isSendRequest: false,
+          isReceiverRequest: true,
+          noRelationship: false,
+        });
+      }
+    } catch (error) {
+      // Xử lý lỗi nếu có
+      client.emit('error', error);
+
+    }
+  }
+
   // Hàm kiểm tra user có online không
   @SubscribeMessage('isUserOnline')
   handleIsUserOnline(@MessageBody() userId: string, @ConnectedSocket() client: Socket) {
@@ -82,5 +111,6 @@ export class ConversationsGateway {
     }
   }
 }
+
 
 

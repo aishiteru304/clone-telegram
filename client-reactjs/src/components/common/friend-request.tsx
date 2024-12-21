@@ -24,7 +24,7 @@ const FriendRequest = () => {
                 {
                     !isLoading && friendRequestList.length != 0 &&
                     friendRequestList.map((item: any) => (
-                        <div key={item._id} className="flex justify-between items-center">
+                        <div key={item._id} className="flex justify-between items-center mt-2">
                             <span className="text-center">{item.fullName}</span>
                             <div className="flex gap-2 text-white">
                                 <button className="bg-primary px-2 py-1 rounded-md">Xác nhận</button>

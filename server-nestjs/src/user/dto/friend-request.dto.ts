@@ -5,4 +5,6 @@ export class FriendRequestDto {
     @IsNotEmpty()
     userId: string;
 
+    @IsNotEmpty()
+    accessToken: string;
 }
