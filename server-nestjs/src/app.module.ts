@@ -6,6 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { ConversationsGateway } from './conversations/conversations.gateway';
+import { FriendModule } from './friend/friend.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ConversationsGateway } from './conversations/conversations.gateway';
     MongooseModule.forRoot(process.env.DATABASE_URL),
     UserModule,
     CloudinaryModule,
+    FriendModule,
   ],
   controllers: [AppController],
   providers: [AppService, ConversationsGateway],

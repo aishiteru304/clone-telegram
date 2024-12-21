@@ -7,7 +7,7 @@ import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { AddFriendDto } from './dto/add-friend.dto';
-import { FriendRequestDto } from './dto/friend-request.dto';
+import { FriendRequestDto } from '../friend/dto/friend-request.dto';
 
 @Injectable()
 export class UserService {
@@ -130,81 +130,13 @@ export class UserService {
         }
     }
 
-    async getFriends(accessToken: string) {
-        try {
-            // Giải mã token và lấy userId
-            const decoded = this.jwtService.verify(accessToken, { secret: process.env.JWT_SECRET });
-
-            // Truy vấn người dùng từ cơ sở dữ liệu và populate trường 'friends'
-            const user = await this.userModel
-                .findById(decoded.id)
-                .populate('friends', 'fullName')
-                .exec();
-
-
-            if (!user) {
-                throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-            }
-
-            return user.friends;
-        } catch (error) {
-            // Kiểm tra nếu lỗi là một HttpException
-            if (error instanceof HttpException) {
-                throw error;
-            }
-            // Xử lý lỗi JWT cụ thể (nếu cần)
-            if (error.name === 'TokenExpiredError') {
-                throw new HttpException('Token has expired', HttpStatus.UNAUTHORIZED);
-            }
-
-            if (error.name === 'JsonWebTokenError') {
-                throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
-            }
-
-            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    async getFriendsRequest(accessToken: string) {
-        try {
-            // Giải mã token và lấy userId
-            const decoded = this.jwtService.verify(accessToken, { secret: process.env.JWT_SECRET });
-
-
-            // Truy vấn người dùng từ cơ sở dữ liệu và populate trường 'friends'
-            const user = await this.userModel
-                .findById(decoded.id)
-                .populate('friendsRequest', 'fullName')
-                .exec();
-
-
-            if (!user) {
-                throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-            }
-
-            return user.friendsRequest;
-        } catch (error) {
-            // Kiểm tra nếu lỗi là một HttpException
-            if (error instanceof HttpException) {
-                throw error;
-            }
-            // Xử lý lỗi JWT cụ thể (nếu cần)
-            if (error.name === 'TokenExpiredError') {
-                throw new HttpException('Token has expired', HttpStatus.UNAUTHORIZED);
-            }
-
-            if (error.name === 'JsonWebTokenError') {
-                throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
-            }
-            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
 
     async getInformationById(id: string) {
         try {
             // Truy vấn người dùng từ cơ sở dữ liệu và populate trường 'friends'
             const user = await this.userModel
                 .findById(id).select("-password")
+                .populate('friendsRequest', 'fullName')
                 .exec();
 
             if (!user) {
@@ -220,6 +152,7 @@ export class UserService {
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     async getIdPhoneNumber(req: Request, phone: string) {
         try {
@@ -244,55 +177,6 @@ export class UserService {
         }
     }
 
-    async addFriendRequest(friendRequestDto: FriendRequestDto) {
-
-        try {
-            // Lấy dữ liệu từ body
-            const { userId, accessToken } = friendRequestDto;
-            // Giải mã token và lấy userId
-            const sender = this.jwtService.verify(accessToken, { secret: process.env.JWT_SECRET });
-
-
-
-            const receiverObjectId = new Types.ObjectId(userId);
-            const senderObjectId = new Types.ObjectId(sender.id);
-
-            // Kiểm tra user đã tồn tại chưa 
-            const existingSender = await this.userModel.findById(senderObjectId);
-            const existingReceiver = await this.userModel.findById(receiverObjectId);
-            if (!existingSender || !existingReceiver) {
-                throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-            }
-
-            // Kiểm tra xem userId đã là bạn của user chưa
-
-            if (existingSender.friends.some(friendId => friendId.toString() === userId)) {
-                throw new HttpException('Already friends', HttpStatus.BAD_REQUEST);
-            }
-
-            existingReceiver.friendsRequest.unshift(existingSender);
-            await existingReceiver.save();
-
-            // Trả về phản hồi thành công
-            return {
-                statusCode: HttpStatus.OK,
-            };
-        } catch (error) {
-            // Kiểm tra nếu lỗi là một HttpException
-            if (error instanceof HttpException) {
-                throw error;
-            }
-            // Xử lý lỗi JWT cụ thể (nếu cần)
-            if (error.name === 'TokenExpiredError') {
-                throw new HttpException('Token has expired', HttpStatus.UNAUTHORIZED);
-            }
-
-            if (error.name === 'JsonWebTokenError') {
-                throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
-            }
-            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
 
     async checkRelationship(req: Request, id: string) {
 

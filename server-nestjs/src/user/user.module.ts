@@ -21,7 +21,7 @@ import { JwtAuthUserMiddleware } from 'src/middlewares/authUser';
   ],
   providers: [UserService],
   controllers: [UserController],
-  exports: [UserService]
+  exports: [UserService, MongooseModule]
 
 })
 export class UserModule {

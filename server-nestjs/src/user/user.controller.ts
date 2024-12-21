@@ -3,7 +3,7 @@ import { UserService } from './user.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { AddFriendDto } from './dto/add-friend.dto';
-import { FriendRequestDto } from './dto/friend-request.dto';
+import { FriendRequestDto } from '../friend/dto/friend-request.dto';
 
 @Controller('user')
 export class UserController {

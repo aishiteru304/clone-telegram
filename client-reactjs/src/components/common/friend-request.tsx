@@ -50,6 +50,11 @@ const FriendRequest = () => {
             setIsLoading(false)
         });
 
+        // Lắng nghe sự kiện 'newRequestFriend' từ server
+        socket.on('newRequestFriend', (newRequestFriend) => {
+            setFriendRequestList(newRequestFriend.friendsRequest)
+        });
+
         // Lắng nghe sự kiện lỗi nếu có
         socket.on('error', (error) => {
             handleResponseError(error)
