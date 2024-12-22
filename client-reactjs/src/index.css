@@ -1,3 +1,24 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components{
+    /* Tùy chỉnh thanh cuộn */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px; /* Đặt chiều rộng */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f0f0f0; /* Màu nền */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #90bc8b; /* Màu thanh cuộn */
+    border-radius: 10px; /* Góc bo tròn */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #90bc8b; /* Màu thanh cuộn khi hover */
+}
+
+}

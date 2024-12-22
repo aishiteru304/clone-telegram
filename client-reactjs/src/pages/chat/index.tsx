@@ -7,6 +7,7 @@ import { UserStatus } from "../../dto/user"
 import ReceiverRequest from "../../components/chat/receiver-request"
 import SenderRequest from "../../components/chat/sender-request"
 import NoRelationship from "../../components/chat/no-relationship"
+import FriendComponent from "../../components/chat/friend"
 
 const ChatPage = () => {
     const { id } = useParams()
@@ -64,7 +65,7 @@ const ChatPage = () => {
             {
                 information &&
                 <div>
-                    <header className="bg-white py-2 px-4 border border-l-[1px]">
+                    <header className="bg-white py-2 px-4 border border-l-[1px] fixed top-0 right-0 w-[70%]">
                         <div>
                             <p>{information.fullName}</p>
                             {!isOnline && <p className="text-sm text-slate-500">Offline</p>}
@@ -83,6 +84,10 @@ const ChatPage = () => {
                         relationship?.noRelationship &&
                         <NoRelationship />
                     }
+                    {
+                        relationship?.isFriend &&
+                        <FriendComponent />
+                    }
 
                 </div>
             }
@@ -92,3 +97,4 @@ const ChatPage = () => {
 }
 
 export default ChatPage
+

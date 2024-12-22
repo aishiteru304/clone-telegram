@@ -16,7 +16,7 @@ const NoRelationship = () => {
     }
 
     return (
-        <div className=" bg-white border-l-[1px] py-2 flex justify-center items-center gap-4">
+        <div className=" bg-white border-l-[1px] py-2 flex justify-center items-center gap-4 mt-14">
             <p className="text-center">Add friend request</p>
             <button className="bg-primary px-2 py-1 rounded-md text-white" onClick={handleAddRequest}>Add</button>
         </div>

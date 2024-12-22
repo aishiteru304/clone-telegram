@@ -20,7 +20,7 @@ const ReceiverRequest = () => {
     }
 
     return (
-        <div className=" bg-white border-l-[1px] py-2">
+        <div className=" bg-white border-l-[1px] py-2 mt-14">
             <p className="text-center">Accept friend request</p>
             <div className="flex gap-2 text-white justify-center mt-2">
                 <button className="bg-primary px-2 py-1 rounded-md" onClick={handleAcceptRequest}>Accept</button>

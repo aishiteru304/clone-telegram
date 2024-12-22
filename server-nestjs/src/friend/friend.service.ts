@@ -310,4 +310,61 @@ export class FriendService {
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    async deleteFriend(friendRequestDto: FriendRequestDto) {
+
+        try {
+            // Lấy dữ liệu từ body
+            const { userId, accessToken } = friendRequestDto;
+            // Giải mã token và lấy userId
+            const sender = this.jwtService.verify(accessToken, { secret: process.env.JWT_SECRET });
+
+            const receiverObjectId = new Types.ObjectId(userId);
+            const senderObjectId = new Types.ObjectId(sender.id);
+
+            // Kiểm tra user đã tồn tại chưa 
+            const existingSender = await this.userModel.findById(senderObjectId);
+            const existingReceiver = await this.userModel.findById(receiverObjectId);
+            if (!existingSender || !existingReceiver) {
+                throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+            }
+
+            // Kiểm tra xem userId đã là bạn của user chưa
+
+            if (existingSender.friends.some(friendId => friendId.toString() === userId)) {
+                // Xóa bằng filter
+                existingReceiver.friends = existingReceiver.friends.filter(
+                    (friend) => friend.toString() !== existingSender._id.toString()
+                );
+                await existingReceiver.save();
+
+                existingSender.friends = existingSender.friends.filter(
+                    (friend) => friend.toString() !== existingReceiver._id.toString()
+                );
+                await existingSender.save();
+
+                // Trả về phản hồi thành công
+                return {
+                    statusCode: HttpStatus.OK,
+                };
+            }
+
+            throw new HttpException('No friends', HttpStatus.BAD_REQUEST);
+
+        } catch (error) {
+            // Kiểm tra nếu lỗi là một HttpException
+            if (error instanceof HttpException) {
+                throw error;
+            }
+            // Xử lý lỗi JWT cụ thể (nếu cần)
+            if (error.name === 'TokenExpiredError') {
+                throw new HttpException('Token has expired', HttpStatus.UNAUTHORIZED);
+            }
+
+            if (error.name === 'JsonWebTokenError') {
+                throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
+            }
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

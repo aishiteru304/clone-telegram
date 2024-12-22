@@ -193,6 +193,43 @@ export class ConversationsGateway {
     }
   }
 
+  // Hàm xóa bạn
+  @SubscribeMessage('deleteFriend')
+  async handleDeleteFriend(@MessageBody() friendRequestDto: FriendRequestDto, @ConnectedSocket() client: Socket) {
+    try {
+      const response = await this.friendService.deleteFriend(friendRequestDto);
+      if (response.statusCode == 200) {
+
+        // Tìm socketId của senderId
+        const socketId = [...this.connectedUsers.entries()].find(
+          ([_, userId]) => userId == friendRequestDto.userId,
+        )?.[0];
+
+        // Phát lại phản hồi tới client
+        client.emit('relationship', { isFriend: false, isSendRequest: false, isReceiverRequest: false, noRelationship: true });
+        // Gửi sự kiện tới client cụ thể
+        this.server.to(socketId).emit('relationship', {
+          isFriend: false,
+          isSendRequest: false,
+          isReceiverRequest: false,
+          noRelationship: true,
+        });
+
+        await this.handleGetFriendsRequest(friendRequestDto.accessToken, client)
+
+        const friendsSender = await this.friendService.getFriendsById(friendRequestDto.userId)
+        this.server.to(socketId).emit('friendsList', friendsSender);
+
+        const friendsAccepter = await this.friendService.getFriendsById(this.connectedUsers.get(client.id))
+        client.emit('friendsList', friendsAccepter);
+      }
+    } catch (error) {
+      // Xử lý lỗi nếu có
+      client.emit('error', error);
+
+    }
+  }
+
   // Hàm kiểm tra user có online không
   @SubscribeMessage('isUserOnline')
   handleIsUserOnline(@MessageBody() userId: string, @ConnectedSocket() client: Socket) {

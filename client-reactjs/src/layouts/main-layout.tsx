@@ -20,7 +20,7 @@ const MainLayout = () => {
             <section className="w-[30%] px-4">
                 <SideBar />
             </section>
-            <section className="w-[70%] bg-[url('/bg.jpg')] bg-cover bg-center">
+            <section className="w-[70%] bg-[url('/bg.jpg')] bg-cover bg-center overflow-y-hidden">
                 <Outlet />
             </section>
         </main>
