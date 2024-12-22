@@ -2,8 +2,6 @@ import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
 import { UserService } from './user.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginDto } from './dto/login.dto';
-import { AddFriendDto } from './dto/add-friend.dto';
-import { FriendRequestDto } from '../friend/dto/friend-request.dto';
 
 @Controller('user')
 export class UserController {
@@ -19,11 +17,6 @@ export class UserController {
         return this.userService.login(loginDto);
     }
 
-    @Post("friend")
-    async addFriend(@Req() req: Request, @Body() addFriendDto: AddFriendDto) {
-        return this.userService.addFriend(req, addFriendDto);
-    }
-
     @Get('information/:id')
     async getInformation(@Param('id') id: string) {
         return this.userService.getInformationById(id);
@@ -34,10 +27,6 @@ export class UserController {
         return this.userService.getIdPhoneNumber(req, phone);
     }
 
-    // @Post("friend/request")
-    // async addFriendRequest(@Req() req: Request, @Body() friendRequestDto: FriendRequestDto) {
-    //     return this.userService.addFriendRequest(req, friendRequestDto);
-    // }
 
     @Get('relationship/:id')
     async checkRelationship(@Req() req: Request, @Param('id') id: string) {

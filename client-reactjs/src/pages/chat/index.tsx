@@ -31,7 +31,6 @@ const ChatPage = () => {
 
         checkRelationship(id)
             .then(res => {
-                console.log(res.data.data)
                 setRelationShip(res.data.data)
             })
             .catch(err => {
@@ -54,7 +53,9 @@ const ChatPage = () => {
         // Xóa listener cũ trước khi thêm listener mới
         socket.off('relationship');
         socket.on("relationship", (data) => {
-            setRelationShip(data)
+            const { userId, ...rest } = data
+            if (userId == id)
+                setRelationShip(rest)
         })
 
     }, [id])

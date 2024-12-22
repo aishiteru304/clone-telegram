@@ -1,8 +1,6 @@
 import { IsNotEmpty } from 'class-validator';
 
-export class AddFriendDto {
-
+export class CreateConversationDto {
     @IsNotEmpty()
-    userId: string;
-
+    userIds: string[];
 }

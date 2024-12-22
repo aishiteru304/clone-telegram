@@ -7,6 +7,8 @@ import { ConfigModule } from '@nestjs/config';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { ConversationsGateway } from './conversations/conversations.gateway';
 import { FriendModule } from './friend/friend.module';
+import { ConversationsModule } from './conversations/conversations.module';
+import { MessageModule } from './message/message.module';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { FriendModule } from './friend/friend.module';
     UserModule,
     CloudinaryModule,
     FriendModule,
+    ConversationsModule,
+    MessageModule,
   ],
   controllers: [AppController],
   providers: [AppService, ConversationsGateway],

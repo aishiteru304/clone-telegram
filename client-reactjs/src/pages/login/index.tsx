@@ -5,14 +5,17 @@ import { Button, Form, Input, message } from "antd";
 import { login } from "./api";
 import useLocalStorage from "../../hooks/useLocalStorage";
 import { ACCESSTOKEN_KEY, INFORMATION_KEY } from "../../app/constant";
+import { useState } from "react";
 
 const LoginPage = () => {
     const { setLocalStorage } = useLocalStorage()
     const { control, handleSubmit, formState: { errors } } = useForm({
         resolver: yupResolver(LoginSchema),
     });
+    const [isLoading, setIsLoading] = useState(false)
 
     const handleLogin = (data: LoginFormValues) => {
+        setIsLoading(true)
         login(data)
             .then(res => {
                 setLocalStorage({ value: { accessToken: res.data.data.accessToken }, key: ACCESSTOKEN_KEY })
@@ -25,6 +28,7 @@ const LoginPage = () => {
                 }
                 console.log(err)
             })
+            .finally(() => setIsLoading(false))
     }
 
     return (
@@ -40,7 +44,7 @@ const LoginPage = () => {
                     <Controller
                         name="phone"
                         control={control}
-                        render={({ field }) => <Input {...field} placeholder="Nhập phone" className='h-12' />}
+                        render={({ field }) => <Input {...field} placeholder="Enter phone number" className='h-12' />}
                     />
                 </Form.Item>
 
@@ -48,17 +52,17 @@ const LoginPage = () => {
                     validateStatus={errors.password ? 'error' : ''}
                     help={errors.password?.message}
                 >
-                    <p className='mb-2 font-medium text-textBold'>Mật khẩu</p>
+                    <p className='mb-2 font-medium text-textBold'>Password</p>
                     <Controller
                         name="password"
                         control={control}
-                        render={({ field }) => <Input.Password {...field} placeholder="Nhập mật khẩu" className='h-12' />}
+                        render={({ field }) => <Input.Password {...field} placeholder="Enter password" className='h-12' />}
                     />
                 </Form.Item>
 
                 <Form.Item>
-                    <Button type="primary" htmlType="submit" block className='h-12'>
-                        Đăng nhập
+                    <Button type="primary" htmlType="submit" block className='h-12' loading={isLoading}>
+                        Login
                     </Button>
                 </Form.Item>
             </Form>

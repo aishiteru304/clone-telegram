@@ -6,8 +6,6 @@ import { RegisterUserDto } from './dto/register-user.dto';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
-import { AddFriendDto } from './dto/add-friend.dto';
-import { FriendRequestDto } from '../friend/dto/friend-request.dto';
 
 @Injectable()
 export class UserService {
@@ -77,49 +75,6 @@ export class UserService {
                 statusCode: HttpStatus.OK,
                 message: 'User logged successfully.',
                 data: { accessToken, fullName: existingUser.fullName, id: existingUser._id }
-            };
-        } catch (error) {
-            // Kiểm tra nếu lỗi là một HttpException
-            if (error instanceof HttpException) {
-                throw error;
-            }
-            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    async addFriend(req: Request, addFriendDto: AddFriendDto) {
-
-        try {
-            const sender = req["user"]
-            // Lấy dữ liệu từ body
-            const { userId } = addFriendDto;
-
-
-            const receiverObjectId = new Types.ObjectId(userId);
-            const senderObjectId = new Types.ObjectId(sender.id);
-
-            // Kiểm tra user đã tồn tại chưa 
-            const existingSender = await this.userModel.findById(senderObjectId);
-            const existingReceiver = await this.userModel.findById(receiverObjectId);
-            if (!existingSender || !existingReceiver) {
-                throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-            }
-
-            // Kiểm tra xem userId đã là bạn của user chưa
-            if (existingSender.friends.some(friendId => friendId.toString() === userId)) {
-                throw new HttpException('Already friends', HttpStatus.BAD_REQUEST);
-            }
-
-            existingReceiver.friends.unshift(existingSender);
-            await existingReceiver.save();
-
-            existingSender.friends.unshift(existingReceiver);
-            await existingSender.save();
-
-            // Trả về phản hồi thành công
-            return {
-                statusCode: HttpStatus.OK,
-                message: 'Friend added successfully.',
             };
         } catch (error) {
             // Kiểm tra nếu lỗi là một HttpException
