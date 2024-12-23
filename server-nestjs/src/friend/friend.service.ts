@@ -54,6 +54,7 @@ export class FriendService {
             const user = await this.userModel
                 .findById(decoded.id)
                 .populate('friendsRequest', 'fullName')
+                .populate('friendsRequestSent', 'fullName')
                 .exec();
 
 
@@ -61,7 +62,7 @@ export class FriendService {
                 throw new HttpException('User not found', HttpStatus.NOT_FOUND);
             }
 
-            return user.friendsRequest;
+            return { requestReceived: user.friendsRequest, requestSent: user.friendsRequestSent };
         } catch (error) {
             // Kiểm tra nếu lỗi là một HttpException
             if (error instanceof HttpException) {
@@ -107,6 +108,9 @@ export class FriendService {
 
             existingReceiver.friendsRequest.unshift(existingSender);
             await existingReceiver.save();
+
+            existingSender.friendsRequestSent.unshift(existingReceiver);
+            await existingSender.save();
 
             // Trả về phản hồi thành công
             return {
@@ -161,6 +165,12 @@ export class FriendService {
             );
             await existingReceiver.save();
 
+            // Xóa bằng filter
+            existingSender.friendsRequestSent = existingSender.friendsRequestSent.filter(
+                (friendRequest) => friendRequest.toString() !== existingReceiver._id.toString()
+            );
+            await existingSender.save();
+
             // Trả về phản hồi thành công
             return {
                 statusCode: HttpStatus.OK,
@@ -211,6 +221,12 @@ export class FriendService {
             );
             await existingSender.save();
 
+            // Xóa bằng filter
+            existingReceiver.friendsRequestSent = existingReceiver.friendsRequestSent.filter(
+                (friendRequest) => friendRequest.toString() !== existingSender._id.toString()
+            );
+            await existingReceiver.save();
+
             // Trả về phản hồi thành công
             return {
                 statusCode: HttpStatus.OK,
@@ -258,6 +274,10 @@ export class FriendService {
             // Xóa bằng filter
             existingSender.friendsRequest = existingSender.friendsRequest.filter(
                 (friendRequest) => friendRequest.toString() !== existingReceiver._id.toString()
+            );
+
+            existingReceiver.friendsRequestSent = existingReceiver.friendsRequestSent.filter(
+                (friendRequest) => friendRequest.toString() !== existingSender._id.toString()
             );
 
             existingSender.friends.unshift(existingReceiver);

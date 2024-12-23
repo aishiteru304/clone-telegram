@@ -92,6 +92,7 @@ export class UserService {
             const user = await this.userModel
                 .findById(id).select("-password")
                 .populate('friendsRequest', 'fullName')
+                .populate('friendsRequestSent', 'fullName')
                 .exec();
 
             if (!user) {

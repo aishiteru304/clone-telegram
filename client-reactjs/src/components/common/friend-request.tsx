@@ -4,32 +4,98 @@ import { ACCESSTOKEN_KEY } from "../../app/constant"
 import useLocalStorage from "../../hooks/useLocalStorage"
 import socket from "../../socket"
 import useHandleResponseError from "../../hooks/handleResponseError"
+import DeleteFriend from "../friend/delete-friend"
 
 const FriendRequest = () => {
     const { getLocalStorage } = useLocalStorage()
     const accessToken = getLocalStorage(ACCESSTOKEN_KEY)
     const handleResponseError = useHandleResponseError()
-    const [friendRequestList, setFriendRequestList] = useState([])
+    const [requestReceived, setRequestReceived] = useState([])
+    const [requestSent, setRequestSent] = useState([])
+    const [listFriend, setListFriend] = useState([])
     const [isLoading, setIsLoading] = useState(true)
 
+    const handleToConversation = (id: string) => {
+        console.log(id)
+    }
+
+    const handleDeleteRequest = (userId: string) => {
+        if (!accessToken) return
+        socket.emit('deleteFriendRequest', { accessToken: accessToken.accessToken, userId });
+    }
+
+    const handleRejectRequest = (userId: string) => {
+        if (!accessToken) return
+        socket.emit('rejectFriendRequest', { accessToken: accessToken.accessToken, userId });
+    }
+
+    const handleAcceptRequest = (userId: string) => {
+        if (!accessToken) return
+        socket.emit('acceptFriendRequest', { accessToken: accessToken.accessToken, userId });
+    }
     const items: CollapseProps['items'] = [
         {
             key: '1',
-            label: 'Friend Request',
+            label: 'Request Received',
             children: <div>
                 {
-                    !isLoading && friendRequestList.length == 0 &&
+                    !isLoading && requestReceived.length == 0 &&
                     <span className="text-center mt-10">No friend requests</span>
                 }
                 {
-                    !isLoading && friendRequestList.length != 0 &&
-                    friendRequestList.map((item: any) => (
+                    !isLoading && requestReceived.length != 0 &&
+                    requestReceived.map((item: any) => (
                         <div key={item._id} className="flex justify-between items-center mt-2">
                             <span className="text-center">{item.fullName}</span>
                             <div className="flex gap-2 text-white">
-                                <button className="bg-primary px-2 py-1 rounded-md">Xác nhận</button>
-                                <button className="px-2 py-1 text-red-500 border-red-500 rounded-md border-[1px]">Xóa</button>
+                                <button className="bg-primary px-2 py-1 rounded-md" onClick={() => handleAcceptRequest(item._id)}>Accept</button>
+                                <button className="px-2 py-1 text-red-500 border-red-500 rounded-md border-[1px]" onClick={() => handleRejectRequest(item._id)}>Delete</button>
                             </div>
+                        </div>
+                    ))
+
+                }
+            </div>,
+        },
+        {
+            key: '2',
+            label: 'Request Sent',
+            children: <div>
+                {
+                    !isLoading && requestSent.length == 0 &&
+                    <span className="text-center mt-10">No friend requests</span>
+                }
+                {
+                    !isLoading && requestSent.length != 0 &&
+                    requestSent.map((item: any) => (
+                        <div key={item._id} className="flex justify-between items-center mt-2">
+                            <span className="text-center">{item.fullName}</span>
+                            <button className="px-2 py-1 text-red-500 border-red-500 rounded-md border-[1px]" onClick={() => handleDeleteRequest(item._id)}>Delete</button>
+                        </div>
+                    ))
+
+                }
+            </div>,
+        },
+        {
+            key: '3',
+            label: 'List Friend',
+            children: <div>
+                {
+                    !isLoading && listFriend.length == 0 &&
+                    <span className="text-center mt-10">No friend requests</span>
+                }
+                {
+                    !isLoading && listFriend.length != 0 &&
+                    listFriend.map((item: any) => (
+                        <div key={item._id} className="flex relative gap-2 items-center justify-between mt-2 hover:bg-slate-400 p-2 rounded-md transition-all duration-300 ease-in-out cursor-pointer" onClick={() => handleToConversation(item._id)}>
+                            <div className="flex gap-2 items-center">
+                                <div className="h-10 w-10 rounded-full bg-green-500 flex items-center justify-center text-white">
+                                    {item.fullName?.charAt(0).toUpperCase()}
+                                </div>
+                                <span>{item.fullName}</span>
+                            </div>
+                            <DeleteFriend userId={item._id} />
                         </div>
                     ))
 
@@ -42,17 +108,30 @@ const FriendRequest = () => {
         if (accessToken) {
             // Gửi thông điệp đến server để lấy danh sách lời mời
             socket.emit('getFriendsRequest', accessToken.accessToken);
+            socket.emit('getFriends', accessToken.accessToken);
         }
 
         // Lắng nghe sự kiện 'friendsRequestList' từ server
         socket.on('friendsRequestList', (friendsRequest) => {
-            setFriendRequestList(friendsRequest)
+            setRequestReceived(friendsRequest.requestReceived)
+            setRequestSent(friendsRequest.requestSent)
+            setIsLoading(false)
+        });
+
+        // Lắng nghe sự kiện 'friendsList' từ server
+        socket.on('friendsList', (friends) => {
+            setListFriend(friends)
             setIsLoading(false)
         });
 
         // Lắng nghe sự kiện 'newRequestFriend' từ server
         socket.on('newRequestFriend', (newRequestFriend) => {
-            setFriendRequestList(newRequestFriend.friendsRequest)
+            setRequestReceived(newRequestFriend.friendsRequest)
+        });
+
+        // Lắng nghe sự kiện 'newRequestSent' từ server
+        socket.on('newRequestSent', (newRequestFriend) => {
+            setRequestSent(newRequestFriend.friendsRequestSent)
         });
 
         // Lắng nghe sự kiện lỗi nếu có
@@ -62,6 +141,7 @@ const FriendRequest = () => {
         });
 
     }, [])
+
 
     return (
         <Collapse items={items} />

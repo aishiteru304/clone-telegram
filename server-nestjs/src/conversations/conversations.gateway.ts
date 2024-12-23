@@ -76,10 +76,11 @@ export class ConversationsGateway {
         )?.[0];
 
         const receiver = await this.userService.getInformationById(friendRequestDto.userId)
+        const sender = await this.userService.getInformationById(this.connectedUsers.get(client.id))
 
         // Phát lại phản hồi tới client
         client.emit('relationship', { userId: friendRequestDto.userId, isFriend: false, isSendRequest: true, isReceiverRequest: false, noRelationship: false });
-
+        client.emit("newRequestSent", sender)
         // Gửi sự kiện tới client cụ thể
         this.server.to(socketId).emit('relationship', {
           userId: this.connectedUsers.get(client.id),
@@ -110,8 +111,13 @@ export class ConversationsGateway {
           ([_, userId]) => userId == friendRequestDto.userId,
         )?.[0];
 
+        const sender = await this.userService.getInformationById(this.connectedUsers.get(client.id))
+        const receiver = await this.userService.getInformationById(friendRequestDto.userId)
+
         // Phát lại phản hồi tới client
         client.emit('relationship', { userId: friendRequestDto.userId, isFriend: false, isSendRequest: false, isReceiverRequest: false, noRelationship: true });
+        client.emit("newRequestSent", sender)
+
         // Gửi sự kiện tới client cụ thể
         this.server.to(socketId).emit('relationship', {
           userId: this.connectedUsers.get(client.id),
@@ -120,8 +126,6 @@ export class ConversationsGateway {
           isReceiverRequest: false,
           noRelationship: true,
         });
-
-        const receiver = await this.userService.getInformationById(friendRequestDto.userId)
         // Gửi danh sách lời mời mới về
         this.server.to(socketId).emit('newRequestFriend', receiver);
       }
@@ -144,8 +148,13 @@ export class ConversationsGateway {
           ([_, userId]) => userId == friendRequestDto.userId,
         )?.[0];
 
+        const sender = await this.userService.getInformationById(this.connectedUsers.get(client.id))
+        const receiver = await this.userService.getInformationById(friendRequestDto.userId)
+
         // Phát lại phản hồi tới client
         client.emit('relationship', { userId: friendRequestDto.userId, isFriend: false, isSendRequest: false, isReceiverRequest: false, noRelationship: true });
+        client.emit("newRequestFriend", sender)
+
         // Gửi sự kiện tới client cụ thể
         this.server.to(socketId).emit('relationship', {
           userId: this.connectedUsers.get(client.id),
@@ -154,8 +163,8 @@ export class ConversationsGateway {
           isReceiverRequest: false,
           noRelationship: true,
         });
+        this.server.to(socketId).emit('newRequestSent', receiver);
 
-        await this.handleGetFriendsRequest(friendRequestDto.accessToken, client)
       }
     } catch (error) {
       // Xử lý lỗi nếu có
@@ -176,7 +185,8 @@ export class ConversationsGateway {
           ([_, userId]) => userId == friendRequestDto.userId,
         )?.[0];
 
-        await this.handleGetFriendsRequest(friendRequestDto.accessToken, client)
+        const sender = await this.userService.getInformationById(this.connectedUsers.get(client.id))
+        const receiver = await this.userService.getInformationById(friendRequestDto.userId)
         const friendsSender = await this.friendService.getFriendsById(friendRequestDto.userId)
         const friendsAccepter = await this.friendService.getFriendsById(this.connectedUsers.get(client.id))
         await this.conversationsService.createConversation({ userIds: [friendRequestDto.userId, this.connectedUsers.get(client.id)] })
@@ -184,6 +194,7 @@ export class ConversationsGateway {
         // Phát lại phản hồi tới client
         client.emit('relationship', { userId: friendRequestDto.userId, isFriend: true, isSendRequest: false, isReceiverRequest: false, noRelationship: false });
         client.emit('friendsList', friendsAccepter);
+        client.emit("newRequestFriend", sender)
 
         // Gửi sự kiện tới client cụ thể
         this.server.to(socketId).emit('relationship', {
@@ -194,6 +205,7 @@ export class ConversationsGateway {
           noRelationship: false,
         });
         this.server.to(socketId).emit('friendsList', friendsSender);
+        this.server.to(socketId).emit('newRequestSent', receiver);
       }
     } catch (error) {
       // Xử lý lỗi nếu có
@@ -223,7 +235,7 @@ export class ConversationsGateway {
         // Phát lại phản hồi tới client
         client.emit('relationship', { userId: friendRequestDto.userId, isFriend: false, isSendRequest: false, isReceiverRequest: false, noRelationship: true });
         client.emit('friendsList', friendsAccepter);
-
+        client.emit("changedFriend", true)
         // Gửi sự kiện tới client cụ thể
         this.server.to(socketId).emit('relationship', {
           userId: this.connectedUsers.get(client.id),
@@ -234,6 +246,7 @@ export class ConversationsGateway {
         });
 
         this.server.to(socketId).emit('friendsList', friendsSender);
+        client.emit("changedFriend", true)
 
       }
     } catch (error) {

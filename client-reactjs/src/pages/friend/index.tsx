@@ -4,12 +4,11 @@ import { checkRelationship, getInformationById } from "./api"
 import useHandleResponseError from "../../hooks/handleResponseError"
 import socket from "../../socket"
 import { UserStatus } from "../../dto/user"
-import ReceiverRequest from "../../components/chat/receiver-request"
-import SenderRequest from "../../components/chat/sender-request"
-import NoRelationship from "../../components/chat/no-relationship"
-import FriendComponent from "../../components/chat/friend"
+import ReceiverRequest from "../../components/friend/receiver-request"
+import SenderRequest from "../../components/friend/sender-request"
+import NoRelationship from "../../components/friend/no-relationship"
 
-const ChatPage = () => {
+const FriendPage = () => {
     const { id } = useParams()
     const handleResponseError = useHandleResponseError()
     const [information, setInformation] = useState<any>(null)
@@ -58,8 +57,20 @@ const ChatPage = () => {
                 setRelationShip(rest)
         })
 
+        // Xóa listener cũ trước khi thêm listener mới
+        socket.off('changedFriend');
+        socket.on("changedFriend", (isChanged) => {
+            if (isChanged)
+                navigate("/")
+        })
+
     }, [id])
 
+    useEffect(() => {
+        if (relationship?.isFriend) {
+            navigate("/")
+        }
+    }, [relationship])
 
     return (
         <div>
@@ -85,10 +96,6 @@ const ChatPage = () => {
                         relationship?.noRelationship &&
                         <NoRelationship />
                     }
-                    {
-                        relationship?.isFriend &&
-                        <FriendComponent />
-                    }
 
                 </div>
             }
@@ -97,5 +104,6 @@ const ChatPage = () => {
     )
 }
 
-export default ChatPage
+export default FriendPage
+
 

@@ -1,37 +1,34 @@
 import { Dropdown, Space } from "antd"
 import { BsThreeDotsVertical } from "react-icons/bs"
-import { useParams } from "react-router-dom"
 import useLocalStorage from "../../hooks/useLocalStorage"
 import { ACCESSTOKEN_KEY } from "../../app/constant"
 import socket from "../../socket"
 
-const DeleteFriend = () => {
-    const { id } = useParams()
+const DeleteFriend = ({ userId }: { userId: string }) => {
     const { getLocalStorage } = useLocalStorage()
     const accessToken = getLocalStorage(ACCESSTOKEN_KEY)
 
     // Hàm xóa bạn
     const handleDeleteFriend = () => {
-        if (!id || !accessToken) return
-        socket.emit('deleteFriend', { accessToken: accessToken.accessToken, userId: id });
-
+        if (!accessToken) return
+        socket.emit('deleteFriend', { accessToken: accessToken.accessToken, userId });
     }
 
     return (
-        <div className=" fixed top-0 right-4 gap-2 h-16 flex items-center cursor-pointer">
+        <div className="flex items-center cursor-pointer  rounded-xl">
             <Dropdown
                 menu={{
                     items: [
                         {
                             key: '0',
                             label: (
-                                <button className="text-red-500" onClick={handleDeleteFriend}>Delete Friend</button>
+                                <button className="text-red-500" onClick={(e) => { e.stopPropagation(), handleDeleteFriend() }}>Delete Friend</button>
                             ),
                         },
                     ]
                 }}
                 trigger={['click']}>
-                <a onClick={(e) => e.preventDefault()}>
+                <a onClick={(e) => { e.preventDefault(); e.stopPropagation() }} className="flex items-center p-4 hover:bg-slate-600 rounded-lg">
                     <Space>
                         <BsThreeDotsVertical />
                     </Space>

@@ -1,27 +1,24 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Controller, useForm } from "react-hook-form";
-import LoginSchema, { LoginFormValues } from "../../schemas/loginSchema";
 import { Button, Form, Input, message } from "antd";
-import { login } from "./api";
-import useLocalStorage from "../../hooks/useLocalStorage";
-import { ACCESSTOKEN_KEY, INFORMATION_KEY } from "../../app/constant";
+import { register } from "./api";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import RegisterSchema, { RegisterFormValues } from "../../schemas/registerSchema";
+import { Link, useNavigate } from "react-router-dom";
 
-const LoginPage = () => {
-    const { setLocalStorage } = useLocalStorage()
+const RegisterPage = () => {
     const { control, handleSubmit, formState: { errors } } = useForm({
-        resolver: yupResolver(LoginSchema),
+        resolver: yupResolver(RegisterSchema),
     });
     const [isLoading, setIsLoading] = useState(false)
+    const navigate = useNavigate()
 
-    const handleLogin = (data: LoginFormValues) => {
+    const handleRegister = (data: RegisterFormValues) => {
         setIsLoading(true)
-        login(data)
-            .then(res => {
-                setLocalStorage({ value: { accessToken: res.data.data.accessToken }, key: ACCESSTOKEN_KEY })
-                setLocalStorage({ value: { userId: res.data.data.id, fullName: res.data.data.fullName }, key: INFORMATION_KEY })
-                window.location.href = "/"
+        register(data)
+            .then(() => {
+                message.success("User created successfully")
+                navigate("/login")
             })
             .catch(err => {
                 if (err?.status == 401) {
@@ -36,7 +33,18 @@ const LoginPage = () => {
 
         <section className="flex flex-col items-center mt-20 max-w-2xl mx-auto">
             <img src="/logo.jpg" />
-            <Form onFinish={handleSubmit(handleLogin)} layout="vertical" className="w-full max-w-xl mx-auto">
+            <Form onFinish={handleSubmit(handleRegister)} layout="vertical" className="w-full max-w-xl mx-auto">
+                <Form.Item
+                    validateStatus={errors.fullName ? 'error' : ''}
+                    help={errors.fullName?.message}
+                >
+                    <p className='mb-2 font-medium text-textBold'>Full Name</p>
+                    <Controller
+                        name="fullName"
+                        control={control}
+                        render={({ field }) => <Input {...field} placeholder="Enter full name number" className='h-12' />}
+                    />
+                </Form.Item>
                 <Form.Item
                     validateStatus={errors.phone ? 'error' : ''}
                     help={errors.phone?.message}
@@ -63,14 +71,14 @@ const LoginPage = () => {
 
                 <Form.Item>
                     <Button type="primary" htmlType="submit" block className='h-12' loading={isLoading}>
-                        Sign In
+                        Sign Up
                     </Button>
                 </Form.Item>
-                <p>Dont have a account <Link to="/register">Sign up</Link></p>
+                <p>You have account <Link to="/register">Sign in</Link></p>
             </Form>
         </section>
 
     )
 }
 
-export default LoginPage
+export default RegisterPage

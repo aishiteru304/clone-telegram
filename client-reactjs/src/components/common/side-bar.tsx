@@ -58,12 +58,11 @@ const SideBar = () => {
         getIdByPhoneNumber(data)
             .then(res => {
                 reset()
-                navigate(`/conversation/${res.data?._id}`)
+                navigate(`/friend/${res.data?._id}`)
             })
             .catch(err => {
                 if (err?.status == 404) message.error("User not found")
                 handleResponseError(err)
-
             })
     }
 
