@@ -9,11 +9,9 @@ export class Conversation {
     @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }] })
     members: User[];
 
-    @Prop({ default: false })
-    seen: boolean
+    @Prop({ default: 0 })
+    amountMessages: number
 
-    @Prop({ type: { type: mongoose.Schema.Types.ObjectId, ref: 'User' } })
-    memberFinally: User;
 
     @Prop({ default: false })
     isBlock: boolean

@@ -1,17 +1,28 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { ConversationsService } from './conversations.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Conversation, ConversationSchema } from './schemas/conversation.schema';
 import { UserModule } from 'src/user/user.module';
 import { ConversationsController } from './conversations.controller';
+import { JwtModule } from '@nestjs/jwt';
+import { JwtAuthUserMiddleware } from 'src/middlewares/authUser';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Conversation.name, schema: ConversationSchema }]),
-    UserModule
+    UserModule,
+    JwtModule
   ],
   providers: [ConversationsService],
   controllers: [ConversationsController],
-  exports: [ConversationsService]
+  exports: [ConversationsService, MongooseModule]
 })
-export class ConversationsModule { }
+export class ConversationsModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(JwtAuthUserMiddleware)
+      .forRoutes(
+        { path: 'conversations/:id', method: RequestMethod.GET },
+      );
+  }
+}

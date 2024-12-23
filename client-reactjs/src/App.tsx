@@ -4,6 +4,7 @@ import HomePage from "./pages/home"
 import LoginPage from "./pages/login"
 import ChatPage from "./pages/friend"
 import RegisterPage from "./pages/register"
+import ConverSationPage from "./pages/conversation"
 
 function App() {
 
@@ -13,6 +14,7 @@ function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/" element={<MainLayout />}>
         <Route path="/friend/:id" element={<ChatPage />} />
+        <Route path="/conversation/:id" element={<ConverSationPage />} />
         <Route index element={<HomePage />} />
       </Route>
     </Routes>

@@ -9,8 +9,11 @@ export type MessageDocument = HydratedDocument<Message>;
 @Schema({ timestamps: true })
 export class Message {
 
-    @Prop({ type: { type: mongoose.Schema.Types.ObjectId, ref: 'Conversation' } })
+    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Conversation' })
     conversationId: Conversation;
+
+    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
+    sender: User;
 
     @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }] })
     receiver: User[];
@@ -18,11 +21,11 @@ export class Message {
     @Prop({ enum: TypeMessage })
     type: TypeMessage
 
-    @Prop({ type: { type: mongoose.Schema.Types.ObjectId, ref: 'User' } })
-    sender: User;
-
     @Prop()
     message: string;
+
+    @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }] })
+    seen: User[];
 
     @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }] })
     blocker: User[];

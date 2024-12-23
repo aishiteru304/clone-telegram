@@ -2,7 +2,7 @@ import { IoMenu } from "react-icons/io5";
 import useLocalStorage from "../../hooks/useLocalStorage";
 import { useEffect, useState } from "react";
 import { ACCESSTOKEN_KEY, INFORMATION_KEY } from "../../app/constant";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import useHandleResponseError from "../../hooks/handleResponseError";
 import socket from "../../socket";
 import { Button, Drawer, Form, Input, message } from "antd";
@@ -12,6 +12,7 @@ import SearchSchema, { SearchValues } from "../../schemas/searchSchema";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { getIdByPhoneNumber } from "./api";
+import PrivateConversationItem from "../conversation/privateConversationItem";
 
 const SideBar = () => {
     const { control, handleSubmit, formState: { errors }, reset } = useForm({
@@ -19,9 +20,8 @@ const SideBar = () => {
     });
     const { getLocalStorage, removeLocalStorage } = useLocalStorage()
     const accessToken = getLocalStorage(ACCESSTOKEN_KEY)
-    const [friendList, setFriendList] = useState([])
+    const [conversationsList, setConversationsList] = useState([])
     const [isLoading, setIsLoading] = useState(true)
-    const location = useLocation()
     const handleResponseError = useHandleResponseError()
     const [isOpenDrawer, setIsOpenDrawer] = useState<boolean>(false)
     const information = getLocalStorage(INFORMATION_KEY)
@@ -31,13 +31,18 @@ const SideBar = () => {
     useEffect(() => {
         if (accessToken) {
             // Gửi thông điệp đến server để lấy danh sách bạn bè
-            socket.emit('getFriends', accessToken.accessToken);
+            socket.emit('getConversations', accessToken.accessToken);
         }
 
         // Lắng nghe sự kiện 'friendsList' từ server
-        socket.on('friendsList', (friends) => {
-            setFriendList(friends)
+        socket.on('conversationsList', (conversations) => {
+            setConversationsList(conversations)
             setIsLoading(false)
+        });
+
+        // Lắng nghe sự kiện 'updateConversations' từ server
+        socket.on('updateConversations', (conversations) => {
+            setConversationsList(conversations)
         });
 
         // Lắng nghe sự kiện lỗi nếu có
@@ -94,22 +99,22 @@ const SideBar = () => {
                 </search>
                 <div>
                     {
-                        !isLoading && friendList.length == 0 &&
+                        !isLoading && conversationsList.length == 0 &&
                         <p className="text-center mt-10">Please add friend to chat</p>
                     }
                     {
-                        !isLoading && friendList.length != 0 &&
+                        !isLoading && conversationsList.length != 0 &&
                         <div>
                             {
-                                friendList.map((friend: any) => (
-                                    <Link to={`/conversation/${friend._id}`} key={friend._id} className={`flex gap-2 items-center p-2 cursor-pointer hover:bg-slate-300 rounded-lg transition-all duration-300 ease-in-out ${location.pathname == `/conversation/${friend._id}` ? "bg-primary text-white hover:bg-primary" : ""}`}>
-                                        <div className="h-10 w-10 rounded-full bg-green-500 flex items-center justify-center text-white">
-                                            {friend.fullName?.charAt(0).toUpperCase()}
-                                        </div>
-                                        <span>{friend.fullName}</span>
-                                    </Link>
-                                ))
-                            }
+                                conversationsList.map((conversation: any, index) => {
+                                    if (conversation?.members?.length == 2) {
+                                        return (
+                                            <PrivateConversationItem conversation={conversation} key={index} />
+                                        )
+                                    }
+                                    return null
+                                }
+                                )}
                         </div>
                     }
                 </div>
@@ -132,8 +137,8 @@ const SideBar = () => {
 
                 <FriendRequest />
                 <div className="flex items-center gap-2 cursor-pointer mt-2">
-                    <IoIosLogOut className="text-3xl" />
-                    <span onClick={handleLogout} className="  text-xl font-medium">Logout</span>
+                    <IoIosLogOut className="text-2xl" />
+                    <span onClick={handleLogout} className="  text-lg font-medium">Logout</span>
                 </div>
 
             </Drawer>
