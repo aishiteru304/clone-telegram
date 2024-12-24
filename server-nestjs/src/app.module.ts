@@ -9,6 +9,7 @@ import { ConversationsGateway } from './conversations/conversations.gateway';
 import { FriendModule } from './friend/friend.module';
 import { ConversationsModule } from './conversations/conversations.module';
 import { MessageModule } from './message/message.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { MessageModule } from './message/message.module';
     FriendModule,
     ConversationsModule,
     MessageModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService, ConversationsGateway],

@@ -11,7 +11,7 @@ import FriendRequest from "./friend-request";
 import SearchSchema, { SearchValues } from "../../schemas/searchSchema";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { getIdByPhoneNumber } from "./api";
+import { getConversations, getIdByPhoneNumber } from "./api";
 import PrivateConversationItem from "../conversation/privateConversationItem";
 
 const SideBar = () => {
@@ -19,7 +19,6 @@ const SideBar = () => {
         resolver: yupResolver(SearchSchema),
     });
     const { getLocalStorage, removeLocalStorage } = useLocalStorage()
-    const accessToken = getLocalStorage(ACCESSTOKEN_KEY)
     const [conversationsList, setConversationsList] = useState([])
     const [isLoading, setIsLoading] = useState(true)
     const handleResponseError = useHandleResponseError()
@@ -29,16 +28,14 @@ const SideBar = () => {
 
 
     useEffect(() => {
-        if (accessToken) {
-            // Gửi thông điệp đến server để lấy danh sách bạn bè
-            socket.emit('getConversations', accessToken.accessToken);
-        }
-
-        // Lắng nghe sự kiện 'friendsList' từ server
-        socket.on('conversationsList', (conversations) => {
-            setConversationsList(conversations)
-            setIsLoading(false)
-        });
+        getConversations()
+            .then(res => {
+                setConversationsList(res.data)
+            })
+            .catch(err => {
+                handleResponseError(err)
+            })
+            .finally(() => setIsLoading(false))
 
         // Lắng nghe sự kiện 'updateConversations' từ server
         socket.on('updateConversations', (conversations) => {

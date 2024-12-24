@@ -5,6 +5,8 @@ import useLocalStorage from "../../hooks/useLocalStorage"
 import socket from "../../socket"
 import useHandleResponseError from "../../hooks/handleResponseError"
 import DeleteFriend from "../friend/delete-friend"
+import { getConversationByMembers, getInformations } from "./api"
+import { useNavigate } from "react-router-dom"
 
 const FriendRequest = () => {
     const { getLocalStorage } = useLocalStorage()
@@ -14,9 +16,17 @@ const FriendRequest = () => {
     const [requestSent, setRequestSent] = useState([])
     const [listFriend, setListFriend] = useState([])
     const [isLoading, setIsLoading] = useState(true)
+    const navigate = useNavigate()
 
     const handleToConversation = (id: string) => {
-        console.log(id)
+        const userIds = [id]
+        getConversationByMembers(userIds)
+            .then(res => {
+                navigate(`/conversation/${res.data._id}`)
+            })
+            .catch(err => {
+                handleResponseError(err)
+            })
     }
 
     const handleDeleteRequest = (userId: string) => {
@@ -105,26 +115,17 @@ const FriendRequest = () => {
     ]
 
     useEffect(() => {
-        if (accessToken) {
-            // Gửi thông điệp đến server để lấy danh sách lời mời
-            socket.emit('getFriendsRequest', accessToken.accessToken);
-            socket.emit('getFriends', accessToken.accessToken);
-        }
+        getInformations()
+            .then(res => {
+                setListFriend(res.data.friends)
+                setRequestSent(res.data.friendsRequestSent)
+                setRequestReceived(res.data.friendsRequest)
+            })
+            .catch(err => {
+                handleResponseError(err)
+            })
+            .finally(() => setIsLoading(false))
 
-        // Lắng nghe sự kiện 'friendsRequestList' từ server
-        socket.on('friendsRequestList', (friendsRequest) => {
-            setRequestReceived(friendsRequest.requestReceived)
-            setRequestSent(friendsRequest.requestSent)
-            setIsLoading(false)
-        });
-
-        // Lắng nghe sự kiện 'friendsList' từ server
-        socket.on('friendsList', (friends) => {
-            setListFriend(friends)
-            setIsLoading(false)
-        });
-
-        // Lắng nghe sự kiện 'newRequestFriend' từ server
         socket.on('newRequestFriend', (newRequestFriend) => {
             setRequestReceived(newRequestFriend.friendsRequest)
         });

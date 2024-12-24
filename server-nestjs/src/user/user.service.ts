@@ -6,10 +6,14 @@ import { RegisterUserDto } from './dto/register-user.dto';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class UserService {
-    constructor(@InjectModel(User.name) private userModel: Model<User>, private readonly jwtService: JwtService) { }
+    constructor(@InjectModel(User.name) private userModel: Model<User>,
+        private readonly jwtService: JwtService,
+        private readonly notifyService: NotificationService
+    ) { }
 
     async register(registerUserDto: RegisterUserDto) {
         try {
@@ -34,6 +38,8 @@ export class UserService {
 
             // Lưu vào cơ sở dữ liệu
             await newUser.save();
+
+            await this.notifyService.createNofity({ userId: newUser._id.toString() })
 
             // Trả về phản hồi thành công
             return {
@@ -189,6 +195,32 @@ export class UserService {
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    async getInformation(req: Request) {
+        try {
+            const user = req["user"]
+            // Truy vấn người dùng từ cơ sở dữ liệu và populate trường 'friends'
+            const existUser = await this.userModel
+                .findById(user.id).select("-password")
+                .populate('friendsRequest', 'fullName')
+                .populate('friendsRequestSent', 'fullName')
+                .populate('friends', 'fullName')
+                .exec();
+
+            if (!existUser) {
+                throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+            }
+
+            return existUser;
+        } catch (error) {
+            // Kiểm tra nếu lỗi là một HttpException
+            if (error instanceof HttpException) {
+                throw error;
+            }
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
 }
 

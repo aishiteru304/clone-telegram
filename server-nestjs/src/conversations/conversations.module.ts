@@ -23,6 +23,8 @@ export class ConversationsModule {
       .apply(JwtAuthUserMiddleware)
       .forRoutes(
         { path: 'conversations/:id', method: RequestMethod.GET },
+        { path: 'conversations', method: RequestMethod.GET },
+        { path: 'conversations/members', method: RequestMethod.POST },
       );
   }
 }

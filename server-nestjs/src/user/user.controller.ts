@@ -17,8 +17,14 @@ export class UserController {
         return this.userService.login(loginDto);
     }
 
+    @Get('information')
+    async getInformation(@Req() req: Request) {
+        return this.userService.getInformation(req);
+    }
+
+
     @Get('information/:id')
-    async getInformation(@Param('id') id: string) {
+    async getInformationById(@Param('id') id: string) {
         return this.userService.getInformationById(id);
     }
 
@@ -32,5 +38,7 @@ export class UserController {
     async checkRelationship(@Req() req: Request, @Param('id') id: string) {
         return this.userService.checkRelationship(req, id);
     }
+
+
 
 }

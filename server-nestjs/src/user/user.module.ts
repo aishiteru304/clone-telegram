@@ -6,6 +6,7 @@ import { User, UserSchema } from './schemas/user.schema';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtAuthUserMiddleware } from 'src/middlewares/authUser';
+import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { JwtAuthUserMiddleware } from 'src/middlewares/authUser';
         signOptions: { expiresIn: '60m' },
       }),
     }),
+    NotificationModule
   ],
   providers: [UserService],
   controllers: [UserController],
@@ -33,6 +35,7 @@ export class UserModule {
         { path: 'user/friend/request', method: RequestMethod.POST },
         { path: 'user/information/:id', method: RequestMethod.GET },
         { path: 'user/information/id/:phone', method: RequestMethod.GET },
+        { path: 'user/information', method: RequestMethod.GET },
         { path: 'user/relationship/:id', method: RequestMethod.GET },
       );
   }

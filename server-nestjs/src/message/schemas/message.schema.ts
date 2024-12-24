@@ -29,6 +29,7 @@ export class Message {
 
     @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }] })
     blocker: User[];
+
 }
 
 export const MessageSchema = SchemaFactory.createForClass(Message);

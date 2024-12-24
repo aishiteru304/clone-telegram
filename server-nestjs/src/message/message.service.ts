@@ -38,7 +38,7 @@ export class MessageService {
                 message: createMessageDto.message
             });
 
-            conversation.amountMessages += 1
+            conversation.messages.unshift(newMessage)
             await conversation.save()
 
             return newMessage

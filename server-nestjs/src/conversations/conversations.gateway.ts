@@ -35,36 +35,20 @@ export class ConversationsGateway {
   }
 
   // Hàm lấy danh sách bạn bè
-  @SubscribeMessage('getFriends')
-  async handleGetFriends(@MessageBody() accessToken: string, @ConnectedSocket() client: Socket) {
-    try {
-      // Lấy danh sách bạn bè từ UserService
-      const friends = await this.friendService.getFriends(accessToken);
+  // @SubscribeMessage('getFriends')
+  // async handleGetFriends(@MessageBody() accessToken: string, @ConnectedSocket() client: Socket) {
+  //   try {
+  //     // Lấy danh sách bạn bè từ UserService
+  //     const friends = await this.friendService.getFriends(accessToken);
 
-      // Gửi danh sách bạn bè cho client
-      client.emit('friendsList', friends);
-    } catch (error) {
-      // Xử lý lỗi nếu có
-      client.emit('error', error);
+  //     // Gửi danh sách bạn bè cho client
+  //     client.emit('friendsList', friends);
+  //   } catch (error) {
+  //     // Xử lý lỗi nếu có
+  //     client.emit('error', error);
 
-    }
-  }
-
-  // Hàm lấy danh sách trò chuyện
-  @SubscribeMessage('getConversations')
-  async handleGetConversations(@MessageBody() accessToken: string, @ConnectedSocket() client: Socket) {
-    try {
-      // Lấy danh sách bạn bè từ UserService
-      const conversations = await this.conversationsService.getConversations(accessToken);
-
-      // Gửi danh sách bạn bè cho client
-      client.emit('conversationsList', conversations);
-    } catch (error) {
-      // Xử lý lỗi nếu có
-      client.emit('error', error);
-
-    }
-  }
+  //   }
+  // }
 
   // Hàm lấy danh sách lời mời kết bạn
   @SubscribeMessage('getFriendsRequest')
