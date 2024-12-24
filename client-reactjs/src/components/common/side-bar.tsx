@@ -11,7 +11,7 @@ import FriendRequest from "./friend-request";
 import SearchSchema, { SearchValues } from "../../schemas/searchSchema";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { getConversations, getIdByPhoneNumber } from "./api";
+import { getConversations, getIdByPhoneNumber, getNotifications } from "./api";
 import PrivateConversationItem from "../conversation/privateConversationItem";
 
 const SideBar = () => {
@@ -25,21 +25,30 @@ const SideBar = () => {
     const [isOpenDrawer, setIsOpenDrawer] = useState<boolean>(false)
     const information = getLocalStorage(INFORMATION_KEY)
     const navigate = useNavigate()
+    const [notification, setNotification] = useState<number>(0)
 
 
     useEffect(() => {
-        getConversations()
-            .then(res => {
-                setConversationsList(res.data)
+        Promise.all([getConversations(), getNotifications()])
+            .then(([conversationsRes, notificationsRes]) => {
+                setConversationsList(conversationsRes.data);
+                setNotification(notificationsRes.data.requestFriend);
             })
-            .catch(err => {
-                handleResponseError(err)
+            .catch((err) => {
+                handleResponseError(err);
             })
-            .finally(() => setIsLoading(false))
+            .finally(() => {
+                setIsLoading(false);
+            });
 
         // Lắng nghe sự kiện 'updateConversations' từ server
         socket.on('updateConversations', (conversations) => {
             setConversationsList(conversations)
+        });
+
+        // Lắng nghe sự kiện 'newRequestNotification' từ server
+        socket.on('newRequestNotification', (numberNewRequest) => {
+            setNotification(numberNewRequest)
         });
 
         // Lắng nghe sự kiện lỗi nếu có
@@ -72,7 +81,15 @@ const SideBar = () => {
         <>
             <section>
                 <search className="flex gap-2 items-center ">
-                    <IoMenu className="text-2xl cursor-pointer" onClick={() => setIsOpenDrawer(true)} />
+                    <div className="relative">
+                        <IoMenu className="text-2xl cursor-pointer" onClick={() => setIsOpenDrawer(true)} />
+                        {
+                            !!notification &&
+                            <div className="w-5 h-5 rounded-full bg-red-500 text-white text-sm flex items-center justify-center absolute -top-3 -right-1">
+                                {notification}
+                            </div>
+                        }
+                    </div>
                     <Form onFinish={handleSubmit(handleSearch)} layout="vertical" className="items-center mt-6 flex-grow relative">
                         <Form.Item
                             validateStatus={errors.phone ? 'error' : ''}
@@ -132,7 +149,7 @@ const SideBar = () => {
                 closable={false} // Tắt icon close
             >
 
-                <FriendRequest />
+                <FriendRequest notification={notification} />
                 <div className="flex items-center gap-2 cursor-pointer mt-2">
                     <IoIosLogOut className="text-2xl" />
                     <span onClick={handleLogout} className="  text-lg font-medium">Logout</span>

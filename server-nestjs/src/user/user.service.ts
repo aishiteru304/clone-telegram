@@ -99,6 +99,7 @@ export class UserService {
                 .findById(id).select("-password")
                 .populate('friendsRequest', 'fullName')
                 .populate('friendsRequestSent', 'fullName')
+                .populate('friends', 'fullName')
                 .exec();
 
             if (!user) {

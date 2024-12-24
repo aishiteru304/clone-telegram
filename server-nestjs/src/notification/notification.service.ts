@@ -35,4 +35,93 @@ export class NotificationService {
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    async getNotification(req: Request) {
+        try {
+            const user = req["user"]
+            // Truy vấn người dùng từ cơ sở dữ liệu và populate trường 'friends'
+            const existNotification = await this.notifyModel
+                .findOne({ user: user.id })
+                .exec();
+
+            if (!existNotification) {
+                throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+            }
+
+            return existNotification;
+        } catch (error) {
+            // Kiểm tra nếu lỗi là một HttpException
+            if (error instanceof HttpException) {
+                throw error;
+            }
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    async newNotificationRequest(id: string) {
+        try {
+            // Truy vấn người dùng từ cơ sở dữ liệu và populate trường 'friends'
+            const existNotification = await this.notifyModel
+                .findOne({ user: id })
+                .exec();
+
+            if (!existNotification) {
+                throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+            }
+            existNotification.requestFriend += 1
+            await existNotification.save()
+            return existNotification.requestFriend;
+        } catch (error) {
+            // Kiểm tra nếu lỗi là một HttpException
+            if (error instanceof HttpException) {
+                throw error;
+            }
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    async cancelNotificationRequest(id: string) {
+        try {
+            // Truy vấn người dùng từ cơ sở dữ liệu và populate trường 'friends'
+            const existNotification = await this.notifyModel
+                .findOne({ user: id })
+                .exec();
+
+            if (!existNotification) {
+                throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+            }
+            existNotification.requestFriend -= 1
+            await existNotification.save()
+            return existNotification.requestFriend;
+        } catch (error) {
+            // Kiểm tra nếu lỗi là một HttpException
+            if (error instanceof HttpException) {
+                throw error;
+            }
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    async seenNotificationRequest(id: string) {
+        try {
+            // Truy vấn người dùng từ cơ sở dữ liệu và populate trường 'friends'
+            const existNotification = await this.notifyModel
+                .findOne({ user: id })
+                .exec();
+
+            if (!existNotification) {
+                throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+            }
+            existNotification.requestFriend = 0
+            await existNotification.save()
+            return existNotification.requestFriend;
+        } catch (error) {
+            // Kiểm tra nếu lỗi là một HttpException
+            if (error instanceof HttpException) {
+                throw error;
+            }
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }

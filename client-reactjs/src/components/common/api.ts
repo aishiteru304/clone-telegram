@@ -16,3 +16,7 @@ export const getConversationByMembers = (userIds: string[]) => {
 export const getInformations = () => {
     return axiosWithHeader.get(`/user/information`)
 }
+
+export const getNotifications = () => {
+    return axiosWithHeader.get(`notification`)
+}

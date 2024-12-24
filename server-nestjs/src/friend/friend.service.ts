@@ -307,30 +307,6 @@ export class FriendService {
         }
     }
 
-    async getFriendsById(id: string) {
-        try {
-
-            // Truy vấn người dùng từ cơ sở dữ liệu và populate trường 'friends'
-            const user = await this.userModel
-                .findById(id)
-                .populate('friends', 'fullName')
-                .exec();
-
-
-            if (!user) {
-                throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-            }
-
-            return user.friends;
-        } catch (error) {
-            // Kiểm tra nếu lỗi là một HttpException
-            if (error instanceof HttpException) {
-                throw error;
-            }
-            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
     async deleteFriend(friendRequestDto: FriendRequestDto) {
 
         try {

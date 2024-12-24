@@ -8,7 +8,7 @@ import DeleteFriend from "../friend/delete-friend"
 import { getConversationByMembers, getInformations } from "./api"
 import { useNavigate } from "react-router-dom"
 
-const FriendRequest = () => {
+const FriendRequest = ({ notification }: { notification: number }) => {
     const { getLocalStorage } = useLocalStorage()
     const accessToken = getLocalStorage(ACCESSTOKEN_KEY)
     const handleResponseError = useHandleResponseError()
@@ -43,10 +43,18 @@ const FriendRequest = () => {
         if (!accessToken) return
         socket.emit('acceptFriendRequest', { accessToken: accessToken.accessToken, userId });
     }
+
+    const handleSeenRequest = () => {
+        if (notification != 0) {
+            socket.emit("seenFriendRequest")
+        }
+    }
+
+
     const items: CollapseProps['items'] = [
         {
             key: '1',
-            label: 'Request Received',
+            label: <span className="flex items-center gap-2" onClick={handleSeenRequest}>Request Received {!!notification && <span className="bg-red-500 w-5 h-5 rounded-full text-white flex items-center justify-center">{notification}</span>}</span>,
             children: <div>
                 {
                     !isLoading && requestReceived.length == 0 &&
@@ -126,13 +134,18 @@ const FriendRequest = () => {
             })
             .finally(() => setIsLoading(false))
 
-        socket.on('newRequestFriend', (newRequestFriend) => {
-            setRequestReceived(newRequestFriend.friendsRequest)
+        socket.on('newRequestFriend', (user) => {
+            setRequestReceived(user.friendsRequest)
         });
 
         // Lắng nghe sự kiện 'newRequestSent' từ server
-        socket.on('newRequestSent', (newRequestFriend) => {
-            setRequestSent(newRequestFriend.friendsRequestSent)
+        socket.on('newRequestSent', (user) => {
+            setRequestSent(user.friendsRequestSent)
+        });
+
+        // Lắng nghe sự kiện 'friendsList' từ server
+        socket.on('friendsList', (user) => {
+            setListFriend(user.friends)
         });
 
         // Lắng nghe sự kiện lỗi nếu có
