@@ -10,6 +10,7 @@ import { ACCESSTOKEN_KEY } from "../../app/constant";
 import socket from "../../socket";
 import useHandleResponseError from "../../hooks/handleResponseError";
 import { message } from "antd";
+import { getConversationById } from "../../pages/conversation/api";
 
 const ConversationContent = ({ receiverIds }: { receiverIds: string[] }) => {
     const { id } = useParams()
@@ -23,7 +24,16 @@ const ConversationContent = ({ receiverIds }: { receiverIds: string[] }) => {
     const handleResponseError = useHandleResponseError()
 
     useEffect(() => {
-
+        if (!id) return
+        getConversationById(id)
+            .then(res => {
+                console.log(res.data)
+                setData(res.data.messages)
+            })
+            .catch(err => {
+                handleResponseError(err)
+                console.log(err)
+            })
         // Lắng nghe sự kiện lỗi nếu có
         socket.on('error', (error) => {
             if (error?.status == 404) message.error("Cant not send a message")
@@ -63,15 +73,15 @@ const ConversationContent = ({ receiverIds }: { receiverIds: string[] }) => {
     return (
         <>
             {/* Section to show message content */}
-            {/* <div className="pt-16 h-screen overflow-hidden">
-                <div className="flex flex-col gap-20 max-h-full overflow-y-auto custom-scrollbar">
+            <div className="py-20 h-screen overflow-hidden">
+                <div className="flex flex-col-reverse gap-20 h-full overflow-y-auto custom-scrollbar">
                     {
-                        data.map((item, index) => (
-                            <li key={index}>{item}</li>
+                        data.map((item: any, index) => (
+                            <li key={index} className=" list-none">{item.message}</li>
                         ))
                     }
                 </div>
-            </div> */}
+            </div>
 
             {/* Section to show user input bar */}
             <footer className="bg-white py-4 fixed right-0 w-[70%] bottom-0 border border-l-[1px] flex items-center pr-8 pl-4">

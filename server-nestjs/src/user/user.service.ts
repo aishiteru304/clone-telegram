@@ -7,6 +7,7 @@ import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { NotificationService } from 'src/notification/notification.service';
+import { TypeUser } from 'src/enums/type-user.enum';
 
 @Injectable()
 export class UserService {
@@ -14,6 +15,21 @@ export class UserService {
         private readonly jwtService: JwtService,
         private readonly notifyService: NotificationService
     ) { }
+
+    async onModuleInit() {
+        const adminExists = await this.userModel.findOne({ type: TypeUser.ADMIN }).exec();
+        if (!adminExists) {
+            const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
+            const admin = new this.userModel({
+                fullName: 'admin',
+                phone: process.env.ADMIN_PHONE,
+                password: hashedPassword,
+                type: TypeUser.ADMIN,
+            });
+            await admin.save();
+            console.log('Default admin user created.');
+        }
+    }
 
     async register(registerUserDto: RegisterUserDto) {
         try {

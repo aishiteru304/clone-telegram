@@ -13,6 +13,7 @@ import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { getConversations, getIdByPhoneNumber, getNotifications } from "./api";
 import PrivateConversationItem from "../conversation/privateConversationItem";
+import { TypeConversation } from "../../enums/type-conversation.enum";
 
 const SideBar = () => {
     const { control, handleSubmit, formState: { errors }, reset } = useForm({
@@ -121,7 +122,7 @@ const SideBar = () => {
                         <div>
                             {
                                 conversationsList.map((conversation: any, index) => {
-                                    if (conversation?.members?.length == 2) {
+                                    if (conversation?.type == TypeConversation.PRIVATE) {
                                         return (
                                             <PrivateConversationItem conversation={conversation} key={index} />
                                         )

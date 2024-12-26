@@ -4,6 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from 'src/user/schemas/user.schema';
 import { Conversation } from './schemas/conversation.schema';
+import { TypeConversation } from 'src/enums/type-conversation.enum';
 // import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
@@ -42,12 +43,22 @@ export class ConversationsService {
                 };
             }
 
-            // Tạo mới conversation nếu tất cả userIds tồn tại
-            const conversation = new this.conversationModel({
-                members: userIds,
-            });
-
-            await conversation.save();
+            if (userIds.length == 2) {
+                // Tạo mới private conversation 
+                const conversation = new this.conversationModel({
+                    members: userIds,
+                    type: TypeConversation.PRIVATE
+                });
+                await conversation.save();
+            }
+            else {
+                // Tạo mới group conversation 
+                const conversation = new this.conversationModel({
+                    members: userIds,
+                    type: TypeConversation.GROUP
+                });
+                await conversation.save();
+            }
 
             // Trả về phản hồi thành công
             return {
@@ -131,7 +142,7 @@ export class ConversationsService {
         }
     }
 
-    async getConversationById(id: string) {
+    async getConversationById(req: Request, id: string) {
         try {
 
             // Truy vấn conversation từ cơ sở dữ liệu và populate trường 'friends'
@@ -140,6 +151,14 @@ export class ConversationsService {
                 isBlock: false,     // điều kiện bổ sung
             })
                 .populate('members', "fullName") // Populate thông tin của members
+                .populate({
+                    path: 'messages', // Populate messages
+                    options: { sort: { createdAt: -1 } }, // Sắp xếp mới trước
+                    populate: [
+                        { path: 'sender', select: 'fullName type' }, // Populate sender bên trong messages
+                        { path: 'receiver', select: 'fullName type' }, // Populate receiver bên trong messages
+                    ],
+                })
                 .exec();
 
 

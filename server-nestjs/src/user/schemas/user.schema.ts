@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument, Types } from 'mongoose';
+import { TypeUser } from 'src/enums/type-user.enum';
 
 export type UserDocument = HydratedDocument<User>;
 
@@ -13,6 +14,9 @@ export class User {
 
     @Prop({ required: true })
     password: string;
+
+    @Prop({ enum: TypeUser, default: TypeUser.USER })
+    type: TypeUser;
 
     @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }] })
     friends: User[];

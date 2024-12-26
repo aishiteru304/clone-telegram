@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument, Types } from 'mongoose';
+import { TypeConversation } from 'src/enums/type-conversation.enum';
 import { Message } from 'src/message/schemas/message.schema';
 import { User } from 'src/user/schemas/user.schema';
 
@@ -17,10 +18,16 @@ export class Conversation {
     isBlock: boolean
 
     @Prop({ default: "" })
-    name: string
+    name: string;
 
     @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }] })
     hidden: User[];
+
+    @Prop({ default: "" })
+    background: string;
+
+    @Prop({ enum: TypeConversation })
+    type: TypeConversation;
 }
 
 export const ConversationSchema = SchemaFactory.createForClass(Conversation);
