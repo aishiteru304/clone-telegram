@@ -21,4 +21,22 @@
     background-color: #90bc8b; /* Màu thanh cuộn khi hover */
 }
 
+    /* Tùy chỉnh thanh cuộn */
+    .sidebar-scrollbar::-webkit-scrollbar {
+        width: 6px; /* Đặt chiều rộng */
+    }
+    
+    .sidebar-scrollbar::-webkit-scrollbar-track {
+        background: #f0f0f0; /* Màu nền */
+    }
+    
+    .sidebar-scrollbar::-webkit-scrollbar-thumb {
+        background-color: #28a9eb; /* Màu thanh cuộn */
+        border-radius: 10px; /* Góc bo tròn */
+    }
+    
+    .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+        background-color: #28a9eb; /* Màu thanh cuộn khi hover */
+    }
+
 }

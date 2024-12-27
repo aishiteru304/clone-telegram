@@ -16,11 +16,11 @@ const MainLayout = () => {
     }, [])
 
     return (
-        <main className="flex h-screen">
-            <section className="w-[30%] px-4">
+        <main className="flex h-screen overflow-hidden">
+            <section className="w-[30%] px-4 overflow-y-hidden h-full">
                 <SideBar />
             </section>
-            <section className="w-[70%] bg-[url('/bg.jpg')] bg-cover bg-center overflow-y-hidden">
+            <section className="w-[70%] bg-[url('/bg.jpg')] bg-cover bg-center overflow-y-hidden h-full">
                 <Outlet />
             </section>
         </main>

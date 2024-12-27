@@ -1,6 +1,6 @@
 import { Collapse, CollapseProps } from "antd"
 import { useEffect, useState } from "react"
-import { ACCESSTOKEN_KEY } from "../../app/constant"
+import { ACCESSTOKEN_KEY, MAX_COLOR } from "../../app/constant"
 import useLocalStorage from "../../hooks/useLocalStorage"
 import socket from "../../socket"
 import useHandleResponseError from "../../hooks/handleResponseError"
@@ -105,17 +105,20 @@ const FriendRequest = ({ notification }: { notification: number }) => {
                 }
                 {
                     !isLoading && listFriend.length != 0 &&
-                    listFriend.map((item: any) => (
-                        <div key={item._id} className="flex relative gap-2 items-center justify-between mt-2 hover:bg-slate-400 p-2 rounded-md transition-all duration-300 ease-in-out cursor-pointer" onClick={() => handleToConversation(item._id)}>
-                            <div className="flex gap-2 items-center">
-                                <div className="h-10 w-10 rounded-full bg-green-500 flex items-center justify-center text-white">
-                                    {item.fullName?.charAt(0).toUpperCase()}
+                    listFriend.map((item: any, index) => {
+                        const bgColor = `bg-primary${index % MAX_COLOR + 1}`
+                        return (
+                            <div key={item._id} className="flex relative gap-2 items-center justify-between mt-2 hover:bg-slate-400 p-2 rounded-md transition-all duration-300 ease-in-out cursor-pointer" onClick={() => handleToConversation(item._id)}>
+                                <div className="flex gap-2 items-center">
+                                    <div className={`h-10 w-10 rounded-full ${bgColor} flex items-center justify-center text-white`}>
+                                        {item.fullName?.charAt(0).toUpperCase()}
+                                    </div>
+                                    <span>{item.fullName}</span>
                                 </div>
-                                <span>{item.fullName}</span>
+                                <DeleteFriend userId={item._id} />
                             </div>
-                            <DeleteFriend userId={item._id} />
-                        </div>
-                    ))
+                        )
+                    })
 
                 }
             </div>,
@@ -158,7 +161,7 @@ const FriendRequest = ({ notification }: { notification: number }) => {
 
 
     return (
-        <Collapse items={items} />
+        <Collapse items={items} accordion />
     )
 }
 

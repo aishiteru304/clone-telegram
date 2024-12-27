@@ -12,7 +12,7 @@ import SearchSchema, { SearchValues } from "../../schemas/searchSchema";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { getConversations, getIdByPhoneNumber, getNotifications } from "./api";
-import PrivateConversationItem from "../conversation/privateConversationItem";
+import PrivateConversationItem from "../conversation/private-conversation-item";
 import { TypeConversation } from "../../enums/type-conversation.enum";
 
 const SideBar = () => {
@@ -80,7 +80,7 @@ const SideBar = () => {
 
     return (
         <>
-            <section>
+            <section className="h-full">
                 <search className="flex gap-2 items-center ">
                     <div className="relative">
                         <IoMenu className="text-2xl cursor-pointer" onClick={() => setIsOpenDrawer(true)} />
@@ -112,19 +112,19 @@ const SideBar = () => {
                         </Form.Item>
                     </Form>
                 </search>
-                <div>
+                <div >
                     {
                         !isLoading && conversationsList.length == 0 &&
                         <p className="text-center mt-10">Please add friend to chat</p>
                     }
                     {
                         !isLoading && conversationsList.length != 0 &&
-                        <div>
+                        <div className="max-h-100vh-96 overflow-y-auto sidebar-scrollbar">
                             {
                                 conversationsList.map((conversation: any, index) => {
                                     if (conversation?.type == TypeConversation.PRIVATE) {
                                         return (
-                                            <PrivateConversationItem conversation={conversation} key={index} />
+                                            <PrivateConversationItem conversation={conversation} key={index} index={index} />
                                         )
                                     }
                                     return null

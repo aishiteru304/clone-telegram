@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom"
 import useLocalStorage from "../../hooks/useLocalStorage"
-import { INFORMATION_KEY } from "../../app/constant"
+import { INFORMATION_KEY, MAX_COLOR } from "../../app/constant"
 
-const PrivateConversationItem = ({ conversation }: { conversation: any }) => {
+
+const PrivateConversationItem = ({ conversation, index }: { conversation: any, index: number }) => {
     const { getLocalStorage } = useLocalStorage()
     const information = getLocalStorage(INFORMATION_KEY)
+    const bgColor = `bg-primary${index % MAX_COLOR + 1}`
 
     const classNames = `${location.pathname == `/conversation/${conversation._id}` ? "bg-primary text-white hover:bg-primary" : ""}`
     return (
@@ -19,7 +21,7 @@ const PrivateConversationItem = ({ conversation }: { conversation: any }) => {
                             return (
                                 <li key={index}
                                     className={`list-none flex gap-2 items-center p-2 cursor-pointer hover:bg-slate-300 rounded-lg transition-all duration-300 ease-in-out ${classNames}`}>
-                                    <div className="h-10 w-10 rounded-full bg-green-500 flex items-center justify-center text-white">
+                                    <div className={`h-10 w-10 rounded-full ${bgColor} flex items-center justify-center text-white`}>
                                         {member.fullName.charAt(0).toUpperCase()}
                                     </div>
                                     <span key={index}>{member.fullName} </span>

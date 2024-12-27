@@ -11,6 +11,7 @@ import socket from "../../socket";
 import useHandleResponseError from "../../hooks/handleResponseError";
 import { message } from "antd";
 import { getConversationById } from "../../pages/conversation/api";
+import MessageItem from "../message/message-item";
 
 const ConversationContent = ({ receiverIds }: { receiverIds: string[] }) => {
     const { id } = useParams()
@@ -27,7 +28,7 @@ const ConversationContent = ({ receiverIds }: { receiverIds: string[] }) => {
         if (!id) return
         getConversationById(id)
             .then(res => {
-                console.log(res.data)
+                console.log(res.data.messages)
                 setData(res.data.messages)
             })
             .catch(err => {
@@ -39,7 +40,7 @@ const ConversationContent = ({ receiverIds }: { receiverIds: string[] }) => {
             if (error?.status == 404) message.error("Cant not send a message")
             handleResponseError(error)
         });
-    }, [])
+    }, [id])
 
     // Hàm thêm emoji vào message
     const handleEmojiClick = (emojiObject: any) => {
@@ -73,11 +74,11 @@ const ConversationContent = ({ receiverIds }: { receiverIds: string[] }) => {
     return (
         <>
             {/* Section to show message content */}
-            <div className="py-20 h-screen overflow-hidden">
+            <div className="h-screen overflow-hidden py-20">
                 <div className="flex flex-col-reverse gap-20 h-full overflow-y-auto custom-scrollbar">
                     {
                         data.map((item: any, index) => (
-                            <li key={index} className=" list-none">{item.message}</li>
+                            <MessageItem item={item} key={index} />
                         ))
                     }
                 </div>

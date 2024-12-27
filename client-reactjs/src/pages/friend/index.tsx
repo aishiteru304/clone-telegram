@@ -57,13 +57,6 @@ const FriendPage = () => {
                 setRelationShip(rest)
         })
 
-        // Xóa listener cũ trước khi thêm listener mới
-        socket.off('changedFriend');
-        socket.on("changedFriend", (isChanged) => {
-            if (isChanged)
-                navigate("/")
-        })
-
     }, [id])
 
     useEffect(() => {
