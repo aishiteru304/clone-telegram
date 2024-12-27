@@ -41,7 +41,21 @@ export class MessageService {
             conversation.messages.unshift(newMessage)
             await conversation.save()
 
-            return newMessage
+            const message = await this.messageModel.findById(newMessage._id)
+                .populate({
+                    path: 'sender',
+                    select: 'fullName type' // Populate sender bên trong messages
+                })
+                .populate({
+                    path: 'receiver',
+                    select: 'fullName type' // Populate receiver bên trong messages
+                })
+                .populate({
+                    path: 'conversationId',
+                    select: 'members' // Populate conversationId bên trong messages
+                });
+
+            return message
 
         } catch (error) {
             // Kiểm tra nếu lỗi là một HttpException

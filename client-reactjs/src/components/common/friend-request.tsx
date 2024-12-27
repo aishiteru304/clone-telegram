@@ -1,6 +1,6 @@
 import { Collapse, CollapseProps } from "antd"
 import { useEffect, useState } from "react"
-import { ACCESSTOKEN_KEY, MAX_COLOR } from "../../app/constant"
+import { ACCESSTOKEN_KEY, COLORS_LIST, MAX_COLOR } from "../../app/constant"
 import useLocalStorage from "../../hooks/useLocalStorage"
 import socket from "../../socket"
 import useHandleResponseError from "../../hooks/handleResponseError"
@@ -106,7 +106,7 @@ const FriendRequest = ({ notification }: { notification: number }) => {
                 {
                     !isLoading && listFriend.length != 0 &&
                     listFriend.map((item: any, index) => {
-                        const bgColor = `bg-primary${index % MAX_COLOR + 1}`
+                        const bgColor = COLORS_LIST[index % MAX_COLOR]
                         return (
                             <div key={item._id} className="flex relative gap-2 items-center justify-between mt-2 hover:bg-slate-400 p-2 rounded-md transition-all duration-300 ease-in-out cursor-pointer" onClick={() => handleToConversation(item._id)}>
                                 <div className="flex gap-2 items-center">

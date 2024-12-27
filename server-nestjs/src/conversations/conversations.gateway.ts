@@ -269,6 +269,8 @@ export class ConversationsGateway {
   async createMessage(@MessageBody() createMessageDto: CreateMessageDto, @ConnectedSocket() client: Socket) {
     try {
       const newMessage = await this.messageService.createMessage(createMessageDto);
+      // Gửi phản hồi về client
+      client.emit('newMessage', newMessage);
 
       // const socketIds = await this.findClientIds(createMessageDto.receiverIds)
 

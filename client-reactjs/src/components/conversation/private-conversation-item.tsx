@@ -1,12 +1,11 @@
 import { Link } from "react-router-dom"
 import useLocalStorage from "../../hooks/useLocalStorage"
-import { INFORMATION_KEY, MAX_COLOR } from "../../app/constant"
-
+import { COLORS_LIST, INFORMATION_KEY, MAX_COLOR } from "../../app/constant"
 
 const PrivateConversationItem = ({ conversation, index }: { conversation: any, index: number }) => {
     const { getLocalStorage } = useLocalStorage()
     const information = getLocalStorage(INFORMATION_KEY)
-    const bgColor = `bg-primary${index % MAX_COLOR + 1}`
+    const bgColor = COLORS_LIST[index % MAX_COLOR]
 
     const classNames = `${location.pathname == `/conversation/${conversation._id}` ? "bg-primary text-white hover:bg-primary" : ""}`
     return (

@@ -157,6 +157,7 @@ export class ConversationsService {
                     populate: [
                         { path: 'sender', select: 'fullName type' }, // Populate sender bên trong messages
                         { path: 'receiver', select: 'fullName type' }, // Populate receiver bên trong messages
+                        { path: 'conversationId', select: 'members' }, // Populate receiver bên trong messages
                     ],
                 })
                 .exec();

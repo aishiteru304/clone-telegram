@@ -1,6 +1,6 @@
 import { MdAttachFile } from "react-icons/md";
 import { FaTelegramPlane } from "react-icons/fa";
-import { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import EmojiPicker from "emoji-picker-react";
 import ModalFile from "./modal-file";
@@ -23,6 +23,20 @@ const ConversationContent = ({ receiverIds }: { receiverIds: string[] }) => {
     const { getLocalStorage } = useLocalStorage()
     const accessToken = getLocalStorage(ACCESSTOKEN_KEY)
     const handleResponseError = useHandleResponseError()
+    const dateRef = useRef(null)
+
+    useEffect(() => {
+        // Lắng nghe sự kiện thêm tin nhắn mới
+        socket.on("newMessage", (newMessage) => {
+            setData(prev => [newMessage, ...prev])
+        })
+
+        // Lắng nghe sự kiện lỗi nếu có
+        socket.on('error', (error) => {
+            if (error?.status == 404) message.error("Cant not send a message")
+            handleResponseError(error)
+        });
+    }, [])
 
     useEffect(() => {
         if (!id) return
@@ -35,11 +49,6 @@ const ConversationContent = ({ receiverIds }: { receiverIds: string[] }) => {
                 handleResponseError(err)
                 console.log(err)
             })
-        // Lắng nghe sự kiện lỗi nếu có
-        socket.on('error', (error) => {
-            if (error?.status == 404) message.error("Cant not send a message")
-            handleResponseError(error)
-        });
     }, [id])
 
     // Hàm thêm emoji vào message
@@ -60,6 +69,13 @@ const ConversationContent = ({ receiverIds }: { receiverIds: string[] }) => {
         setMessageText("")
     }
 
+    // Enter cũng gửi tin nhắn
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            handleSendText();
+        }
+    };
+
     // Hàm xử lý khi change file
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -75,11 +91,38 @@ const ConversationContent = ({ receiverIds }: { receiverIds: string[] }) => {
         <>
             {/* Section to show message content */}
             <div className="h-screen overflow-hidden py-20">
-                <div className="flex flex-col-reverse gap-20 h-full overflow-y-auto custom-scrollbar">
+                <div className="flex flex-col-reverse gap-4 h-full overflow-y-auto custom-scrollbar">
                     {
-                        data.map((item: any, index) => (
-                            <MessageItem item={item} key={index} />
-                        ))
+                        data.map((item: any, index) => {
+                            // Nếu là tin nhắn cuối thì thêm ngày vào
+                            if (index + 1 == data.length) {
+                                dateRef.current = null
+                                return (
+                                    <React.Fragment key={index}>
+                                        <MessageItem item={item} key={index} />
+                                        <h2 className="inline-block mx-auto bg-slate-100 px-2 py-1 rounded-md">{item.createdAt.slice(0, 10)}</h2>
+                                    </React.Fragment>
+
+                                )
+                            }
+
+                            // Nếu tin nhắn khác thời gian với tin nhắn trước thì thêm ngày vào
+                            if (dateRef.current != item.createdAt.slice(0, 10)) {
+                                const dateTemp = dateRef.current
+                                dateRef.current = item.createdAt.slice(0, 10)
+                                return (
+                                    <React.Fragment key={index}>
+                                        {dateTemp && <h2 className="inline-block mx-auto bg-slate-100 px-2 py-1 rounded-md">{dateTemp}</h2>}
+                                        <MessageItem item={item} key={index} />
+                                    </React.Fragment>
+
+                                )
+                            }
+
+                            return (
+                                <MessageItem item={item} key={index} />
+                            )
+                        })
                     }
                 </div>
             </div>
@@ -100,6 +143,7 @@ const ConversationContent = ({ receiverIds }: { receiverIds: string[] }) => {
                     className=" pl-2 outline-none flex-grow"
                     onChange={e => setMessageText(e.target.value)}
                     value={messageText}
+                    onKeyDown={handleKeyDown}
                 />
                 <button
                     className="text-2xl"
