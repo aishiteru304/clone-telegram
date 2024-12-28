@@ -11,7 +11,8 @@ import { JwtAuthUserMiddleware } from 'src/middlewares/authUser';
   ],
   providers: [NotificationService],
   exports: [
-    NotificationService
+    NotificationService,
+    MongooseModule
   ],
   controllers: [NotificationController]
 })

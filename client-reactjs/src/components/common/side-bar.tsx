@@ -27,6 +27,7 @@ const SideBar = () => {
     const information = getLocalStorage(INFORMATION_KEY)
     const navigate = useNavigate()
     const [notification, setNotification] = useState<number>(0)
+    const [notificationConversation, setNotificationConversation] = useState<string[]>([])
 
 
     useEffect(() => {
@@ -34,6 +35,7 @@ const SideBar = () => {
             .then(([conversationsRes, notificationsRes]) => {
                 setConversationsList(conversationsRes.data);
                 setNotification(notificationsRes.data.requestFriend);
+                setNotificationConversation(notificationsRes.data.conversation)
             })
             .catch((err) => {
                 handleResponseError(err);
@@ -122,9 +124,10 @@ const SideBar = () => {
                         <div className="max-h-100vh-96 overflow-y-auto sidebar-scrollbar">
                             {
                                 conversationsList.map((conversation: any, index) => {
+                                    const notify = notificationConversation.includes(conversation._id)
                                     if (conversation?.type == TypeConversation.PRIVATE) {
                                         return (
-                                            <PrivateConversationItem conversation={conversation} key={index} index={index} />
+                                            <PrivateConversationItem conversation={conversation} key={index} index={index} notify={notify} />
                                         )
                                     }
                                     return null

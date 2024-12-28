@@ -5,13 +5,18 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Conversation } from 'src/conversations/schemas/conversation.schema';
 import { Message } from './schemas/message.schema';
+import { SeenMessageDto } from './dto/seen-message.dto';
+import { ConversationsService } from 'src/conversations/conversations.service';
+import { Notify } from 'src/notification/schemas/notifycation.schema';
 
 @Injectable()
 export class MessageService {
     constructor(
         @InjectModel(Message.name) private readonly messageModel: Model<Message>,
         @InjectModel(Conversation.name) private readonly conversationModel: Model<Conversation>,
-        private readonly jwtService: JwtService
+        @InjectModel(Notify.name) private readonly notifyModel: Model<Notify>,
+        private readonly conversationService: ConversationsService,
+        private readonly jwtService: JwtService,
     ) { }
     async createMessage(createMessageDto: CreateMessageDto) {
         try {
@@ -41,6 +46,14 @@ export class MessageService {
             conversation.messages.unshift(newMessage)
             await conversation.save()
 
+            // Thêm thông báo 
+            for (const receiverId of createMessageDto.receiverIds) {
+                await this.notifyModel.updateOne(
+                    { user: receiverId }, // Điều kiện để tìm Notify của user
+                    { $addToSet: { conversation: createMessageDto.conversationId } } // Chỉ thêm nếu chưa tồn tại
+                );
+            }
+
             const message = await this.messageModel.findById(newMessage._id)
                 .populate({
                     path: 'sender',
@@ -56,6 +69,47 @@ export class MessageService {
                 });
 
             return message
+
+        } catch (error) {
+            // Kiểm tra nếu lỗi là một HttpException
+            if (error instanceof HttpException) {
+                throw error;
+            }
+            // Xử lý lỗi JWT cụ thể (nếu cần)
+            if (error.name === 'TokenExpiredError') {
+                throw new HttpException('Token has expired', HttpStatus.UNAUTHORIZED);
+            }
+
+            if (error.name === 'JsonWebTokenError') {
+                throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
+            }
+
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    async seenMessage(seenMessageDto: SeenMessageDto) {
+        try {
+
+            // Giải mã token và lấy userId
+            const decoded = this.jwtService.verify(seenMessageDto.accessToken, { secret: process.env.JWT_SECRET });
+
+            // Nếu bạn muốn tối ưu, có thể dùng `updateMany`:
+            await this.messageModel.updateMany(
+                {
+                    conversationId: seenMessageDto.conversationId,
+                    sender: { $ne: decoded.id },
+                    seen: { $ne: decoded.id } // Chỉ cập nhật nếu `decoded.id` chưa có trong mảng `seen`.
+                },
+                {
+                    $push: { seen: decoded.id }
+                }
+            );
+
+
+            const conversation = this.conversationService.getConversationById(seenMessageDto.conversationId)
+
+            return conversation
 
         } catch (error) {
             // Kiểm tra nếu lỗi là một HttpException

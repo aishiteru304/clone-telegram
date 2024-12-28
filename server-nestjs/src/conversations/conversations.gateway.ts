@@ -7,6 +7,7 @@ import { ConversationsService } from './conversations.service';
 import { MessageService } from 'src/message/message.service';
 import { CreateMessageDto } from 'src/message/dto/create-message.dto';
 import { NotificationService } from 'src/notification/notification.service';
+import { SeenMessageDto } from 'src/message/dto/seen-message.dto';
 
 @WebSocketGateway({ cors: true })
 export class ConversationsGateway {
@@ -287,6 +288,19 @@ export class ConversationsGateway {
         this.server.to(socketId).emit('updateConversations', conversationReceivers[index]);
       });
 
+    } catch (error) {
+      // Xử lý lỗi nếu có
+      client.emit('error', error);
+
+    }
+  }
+
+
+  // Hàm create message
+  @SubscribeMessage('seenMessage')
+  async seenMessage(@MessageBody() seenMessage: SeenMessageDto, @ConnectedSocket() client: Socket) {
+    try {
+      const conversation = await this.messageService.seenMessage(seenMessage);
     } catch (error) {
       // Xử lý lỗi nếu có
       client.emit('error', error);

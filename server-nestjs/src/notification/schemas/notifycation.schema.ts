@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument, Types } from 'mongoose';
+import { Conversation } from 'src/conversations/schemas/conversation.schema';
 import { User } from 'src/user/schemas/user.schema';
 
 export type NotifyDocument = HydratedDocument<Notify>;
@@ -12,13 +13,10 @@ export class Notify {
 
     @Prop({
         type: [
-            {
-                conversationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Conversation' },
-                amount: { type: Number },
-            },
+            { type: mongoose.Schema.Types.ObjectId, ref: 'Conversation' },
         ],
     })
-    conversation: { conversationId: mongoose.Types.ObjectId; amount: number }[];
+    conversation: Conversation[];
 
     @Prop({ default: 0 })
     requestFriend: number;
