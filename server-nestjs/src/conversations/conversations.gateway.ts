@@ -269,10 +269,23 @@ export class ConversationsGateway {
   async createMessage(@MessageBody() createMessageDto: CreateMessageDto, @ConnectedSocket() client: Socket) {
     try {
       const newMessage = await this.messageService.createMessage(createMessageDto);
-      // Gửi phản hồi về client
-      client.emit('newMessage', newMessage);
+      const conversationSender = await this.conversationsService.getConversationListByUserId(this.connectedUsers.get(client.id))
+      // Sử dụng Promise.all để lấy conversationReceiver cho tất cả userIds
+      const conversationReceivers = await Promise.all(
+        createMessageDto.receiverIds.map(userId => this.conversationsService.getConversationListByUserId(userId))
+      );
 
-      // const socketIds = await this.findClientIds(createMessageDto.receiverIds)
+      const socketIds = await this.findClientIds(createMessageDto.receiverIds)
+
+      // Gửi phản hồi về client
+      client.emit('newMessage', { conversationId: createMessageDto.conversationId, newMessage });
+      client.emit("updateConversations", conversationSender)
+
+      // Gửi tin nhắn đến từng socketId
+      socketIds.forEach((socketId, index) => {
+        this.server.to(socketId).emit('newMessage', { conversationId: createMessageDto.conversationId, newMessage });
+        this.server.to(socketId).emit('updateConversations', conversationReceivers[index]);
+      });
 
     } catch (error) {
       // Xử lý lỗi nếu có

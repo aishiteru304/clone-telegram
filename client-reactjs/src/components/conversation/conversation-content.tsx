@@ -25,18 +25,6 @@ const ConversationContent = ({ receiverIds }: { receiverIds: string[] }) => {
     const handleResponseError = useHandleResponseError()
     const dateRef = useRef(null)
 
-    useEffect(() => {
-        // Lắng nghe sự kiện thêm tin nhắn mới
-        socket.on("newMessage", (newMessage) => {
-            setData(prev => [newMessage, ...prev])
-        })
-
-        // Lắng nghe sự kiện lỗi nếu có
-        socket.on('error', (error) => {
-            if (error?.status == 404) message.error("Cant not send a message")
-            handleResponseError(error)
-        });
-    }, [])
 
     useEffect(() => {
         if (!id) return
@@ -49,6 +37,19 @@ const ConversationContent = ({ receiverIds }: { receiverIds: string[] }) => {
                 handleResponseError(err)
                 console.log(err)
             })
+
+        socket.off("newMessage")
+        // Lắng nghe sự kiện thêm tin nhắn mới
+        socket.on("newMessage", (newMessage) => {
+            if (newMessage.conversationId == id)
+                setData(prev => [newMessage.newMessage, ...prev])
+        })
+
+        // Lắng nghe sự kiện lỗi nếu có
+        socket.on('error', (error) => {
+            if (error?.status == 404) message.error("Cant not send a message")
+            handleResponseError(error)
+        });
     }, [id])
 
     // Hàm thêm emoji vào message

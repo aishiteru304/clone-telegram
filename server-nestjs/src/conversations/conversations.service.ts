@@ -142,7 +142,7 @@ export class ConversationsService {
         }
     }
 
-    async getConversationById(req: Request, id: string) {
+    async getConversationById(id: string) {
         try {
 
             // Truy vấn conversation từ cơ sở dữ liệu và populate trường 'friends'
@@ -236,6 +236,34 @@ export class ConversationsService {
                 throw error;
             }
 
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    async getConversationListByUserId(userId: string) {
+        try {
+
+            // Truy vấn conversation từ cơ sở dữ liệu và populate trường 'friends'
+            const conversations = await this.conversationModel.find({
+                members: userId,// Điều kiện members chứa userId
+                isBlock: false,
+                hidden: { $ne: userId },
+            })
+                .sort({ updatedAt: -1 }) // Sắp xếp theo thời gian cập nhật mới nhất
+                .populate('members') // Populate thông tin của members
+                .exec();
+
+
+            if (!conversations) {
+                throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+            }
+
+            return conversations;
+        } catch (error) {
+            // Kiểm tra nếu lỗi là một HttpException
+            if (error instanceof HttpException) {
+                throw error;
+            }
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

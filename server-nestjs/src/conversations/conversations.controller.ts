@@ -7,8 +7,8 @@ export class ConversationsController {
     constructor(private readonly conversationService: ConversationsService) { }
 
     @Get(":id")
-    async getConversationById(@Req() req: Request, @Param("id") id: string) {
-        return this.conversationService.getConversationById(req, id);
+    async getConversationById(@Param("id") id: string) {
+        return this.conversationService.getConversationById(id);
     }
 
     @Get()
