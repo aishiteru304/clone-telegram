@@ -269,23 +269,30 @@ export class ConversationsGateway {
   @SubscribeMessage('createMessage')
   async createMessage(@MessageBody() createMessageDto: CreateMessageDto, @ConnectedSocket() client: Socket) {
     try {
-      const newMessage = await this.messageService.createMessage(createMessageDto);
+      const newMessages = await this.messageService.createMessage(createMessageDto);
       const conversationSender = await this.conversationsService.getConversationListByUserId(this.connectedUsers.get(client.id))
       // Sử dụng Promise.all để lấy conversationReceiver cho tất cả userIds
       const conversationReceivers = await Promise.all(
         createMessageDto.receiverIds.map(userId => this.conversationsService.getConversationListByUserId(userId))
       );
 
+      const notificationConversationSender = await this.notificationService.getNotificationsConversationById(this.connectedUsers.get(client.id))
+      const notificationsConversation = await Promise.all(
+        createMessageDto.receiverIds.map(userId => this.notificationService.getNotificationsConversationById(userId))
+      );
+
       const socketIds = await this.findClientIds(createMessageDto.receiverIds)
 
       // Gửi phản hồi về client
-      client.emit('newMessage', { conversationId: createMessageDto.conversationId, newMessage });
+      client.emit('newMessage', { conversationId: createMessageDto.conversationId, newMessages });
       client.emit("updateConversations", conversationSender)
+      client.emit('updateNotificationsConversation', notificationConversationSender);
 
       // Gửi tin nhắn đến từng socketId
       socketIds.forEach((socketId, index) => {
-        this.server.to(socketId).emit('newMessage', { conversationId: createMessageDto.conversationId, newMessage });
+        this.server.to(socketId).emit('newMessage', { conversationId: createMessageDto.conversationId, newMessages });
         this.server.to(socketId).emit('updateConversations', conversationReceivers[index]);
+        this.server.to(socketId).emit('updateNotificationsConversation', notificationsConversation[index]);
       });
 
     } catch (error) {
@@ -296,11 +303,22 @@ export class ConversationsGateway {
   }
 
 
-  // Hàm create message
+  // Hàm seenMessage message
   @SubscribeMessage('seenMessage')
-  async seenMessage(@MessageBody() seenMessage: SeenMessageDto, @ConnectedSocket() client: Socket) {
+  async seenMessage(@MessageBody() seenMessageDto: SeenMessageDto, @ConnectedSocket() client: Socket) {
     try {
-      const conversation = await this.messageService.seenMessage(seenMessage);
+      const messages = await this.messageService.seenMessage(seenMessageDto);
+      const receiverIds = messages.members.map((item: any) => item._id.toString())
+      const socketIds = await this.findClientIds(receiverIds)
+
+      const notificationConversationSender = await this.notificationService.getNotificationsConversationById(this.connectedUsers.get(client.id))
+
+      // Gửi tin nhắn đến từng socketId
+      socketIds.forEach((socketId) => {
+        this.server.to(socketId).emit('newMessage', { conversationId: seenMessageDto.conversationId, newMessages: messages });
+      });
+      client.emit('updateNotificationsConversation', notificationConversationSender);
+
     } catch (error) {
       // Xử lý lỗi nếu có
       client.emit('error', error);

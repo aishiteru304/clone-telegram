@@ -35,6 +35,16 @@ export class MessageService {
                 throw new HttpException('Conversation does not exist', HttpStatus.NOT_FOUND);
             }
 
+            // Seen tin nhắn cũ
+            await this.messageModel.updateMany(
+                {
+                    sender: { $ne: decoded.id } // Tìm tất cả message mà sender không bằng decoded.id
+                },
+                {
+                    $addToSet: { seen: decoded.id } // Thêm decoded.id vào mảng seen nếu chưa tồn tại
+                }
+            );
+
             const newMessage = await this.messageModel.create({
                 sender: decoded.id,
                 conversationId: createMessageDto.conversationId,
@@ -46,6 +56,8 @@ export class MessageService {
             conversation.messages.unshift(newMessage)
             await conversation.save()
 
+
+
             // Thêm thông báo 
             for (const receiverId of createMessageDto.receiverIds) {
                 await this.notifyModel.updateOne(
@@ -54,21 +66,29 @@ export class MessageService {
                 );
             }
 
-            const message = await this.messageModel.findById(newMessage._id)
-                .populate({
-                    path: 'sender',
-                    select: 'fullName type' // Populate sender bên trong messages
-                })
-                .populate({
-                    path: 'receiver',
-                    select: 'fullName type' // Populate receiver bên trong messages
-                })
-                .populate({
-                    path: 'conversationId',
-                    select: 'members' // Populate conversationId bên trong messages
-                });
+            // Xóa thông báo 
+            await this.notifyModel.updateOne(
+                { user: decoded.id }, // Điều kiện để tìm Notify của user
+                { $pull: { conversation: createMessageDto.conversationId } } // Xóa conversationId khỏi mảng
+            );
 
-            return message
+            // Truy vấn conversation từ cơ sở dữ liệu và populate trường 'friends'
+            const messages = await this.conversationModel.findOne({
+                _id: createMessageDto.conversationId,
+                isBlock: false,     // điều kiện bổ sung
+            })
+                .populate({
+                    path: 'messages', // Populate messages
+                    options: { sort: { createdAt: -1 } }, // Sắp xếp mới trước
+                    populate: [
+                        { path: 'sender', select: 'fullName type' }, // Populate sender bên trong messages
+                        { path: 'receiver', select: 'fullName type' }, // Populate receiver bên trong messages
+                        { path: 'conversationId', select: 'members' }, // Populate receiver bên trong messages
+                    ],
+                })
+                .exec();
+
+            return messages
 
         } catch (error) {
             // Kiểm tra nếu lỗi là một HttpException
@@ -90,26 +110,42 @@ export class MessageService {
 
     async seenMessage(seenMessageDto: SeenMessageDto) {
         try {
-
             // Giải mã token và lấy userId
             const decoded = this.jwtService.verify(seenMessageDto.accessToken, { secret: process.env.JWT_SECRET });
 
-            // Nếu bạn muốn tối ưu, có thể dùng `updateMany`:
+            // Xóa thông báo 
+            await this.notifyModel.updateOne(
+                { user: decoded.id }, // Điều kiện để tìm Notify của user
+                { $pull: { conversation: seenMessageDto.conversationId } } // Xóa conversationId khỏi mảng
+            );
+
+            // Seen tin nhắn cũ
             await this.messageModel.updateMany(
                 {
-                    conversationId: seenMessageDto.conversationId,
-                    sender: { $ne: decoded.id },
-                    seen: { $ne: decoded.id } // Chỉ cập nhật nếu `decoded.id` chưa có trong mảng `seen`.
+                    sender: { $ne: decoded.id } // Tìm tất cả message mà sender không bằng decoded.id
                 },
                 {
-                    $push: { seen: decoded.id }
+                    $addToSet: { seen: decoded.id } // Thêm decoded.id vào mảng seen nếu chưa tồn tại
                 }
             );
 
+            // Truy vấn conversation từ cơ sở dữ liệu và populate message
+            const messages = await this.conversationModel.findOne({
+                _id: seenMessageDto.conversationId,
+                isBlock: false,     // điều kiện bổ sung
+            })
+                .populate({
+                    path: 'messages', // Populate messages
+                    options: { sort: { createdAt: -1 } }, // Sắp xếp mới trước
+                    populate: [
+                        { path: 'sender', select: 'fullName type' }, // Populate sender bên trong messages
+                        { path: 'receiver', select: 'fullName type' }, // Populate receiver bên trong messages
+                        { path: 'conversationId', select: 'members' }, // Populate receiver bên trong messages
+                    ],
+                })
+                .exec();
 
-            const conversation = this.conversationService.getConversationById(seenMessageDto.conversationId)
-
-            return conversation
+            return messages
 
         } catch (error) {
             // Kiểm tra nếu lỗi là một HttpException

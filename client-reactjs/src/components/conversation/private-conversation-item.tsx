@@ -1,16 +1,30 @@
 import { Link } from "react-router-dom"
 import useLocalStorage from "../../hooks/useLocalStorage"
-import { COLORS_LIST, INFORMATION_KEY, MAX_COLOR } from "../../app/constant"
+import { ACCESSTOKEN_KEY, COLORS_LIST, INFORMATION_KEY, MAX_COLOR } from "../../app/constant"
+import { useSelector } from "react-redux"
+import { RootState } from "../../redux/store"
+import socket from "../../socket"
 
 const PrivateConversationItem = ({ conversation, index, notify }: { conversation: any, index: number, notify: boolean }) => {
     const { getLocalStorage } = useLocalStorage()
     const information = getLocalStorage(INFORMATION_KEY)
+    const accessToken = getLocalStorage(ACCESSTOKEN_KEY)
     const bgColor = COLORS_LIST[index % MAX_COLOR]
 
     const classNames = `${location.pathname == `/conversation/${conversation._id}` ? "bg-primary text-white hover:bg-primary" : ""}`
+    const conversationNotifications = useSelector((state: RootState) => state.notification.conversation)
+
+    const handleSeenMessage = () => {
+        if (!conversationNotifications.includes(conversation._id) || !accessToken) return
+        // Lắng nghe sự kiện 'seenMessage' từ server
+        socket.off("seenMessage")
+        const data = { conversationId: conversation._id, accessToken: accessToken.accessToken }
+        socket.emit('seenMessage', data);
+    }
     return (
         <Link
             to={`/conversation/${conversation._id}`} key={conversation._id}
+            onClick={handleSeenMessage}
         >
 
             <span>

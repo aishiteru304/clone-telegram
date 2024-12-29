@@ -25,7 +25,6 @@ const ConversationContent = ({ receiverIds }: { receiverIds: string[] }) => {
     const handleResponseError = useHandleResponseError()
     const dateRef = useRef(null)
 
-
     useEffect(() => {
         if (!id) return
         getConversationById(id)
@@ -40,9 +39,9 @@ const ConversationContent = ({ receiverIds }: { receiverIds: string[] }) => {
 
         socket.off("newMessage")
         // Lắng nghe sự kiện thêm tin nhắn mới
-        socket.on("newMessage", (newMessage) => {
-            if (newMessage.conversationId == id)
-                setData(prev => [newMessage.newMessage, ...prev])
+        socket.on("newMessage", (newMessages) => {
+            if (newMessages.conversationId == id)
+                setData(newMessages.newMessages.messages)
         })
 
         // Lắng nghe sự kiện lỗi nếu có

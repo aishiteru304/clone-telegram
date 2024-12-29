@@ -14,6 +14,8 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { getConversations, getIdByPhoneNumber, getNotifications } from "./api";
 import PrivateConversationItem from "../conversation/private-conversation-item";
 import { TypeConversation } from "../../enums/type-conversation.enum";
+import { useDispatch } from "react-redux";
+import { addConversation } from "../../redux/notification-slice";
 
 const SideBar = () => {
     const { control, handleSubmit, formState: { errors }, reset } = useForm({
@@ -28,7 +30,7 @@ const SideBar = () => {
     const navigate = useNavigate()
     const [notification, setNotification] = useState<number>(0)
     const [notificationConversation, setNotificationConversation] = useState<string[]>([])
-
+    const dispath = useDispatch()
 
     useEffect(() => {
         Promise.all([getConversations(), getNotifications()])
@@ -36,6 +38,7 @@ const SideBar = () => {
                 setConversationsList(conversationsRes.data);
                 setNotification(notificationsRes.data.requestFriend);
                 setNotificationConversation(notificationsRes.data.conversation)
+                dispath(addConversation(notificationsRes.data.conversation))
             })
             .catch((err) => {
                 handleResponseError(err);
@@ -47,6 +50,12 @@ const SideBar = () => {
         // Lắng nghe sự kiện 'updateConversations' từ server
         socket.on('updateConversations', (conversations) => {
             setConversationsList(conversations)
+        });
+
+        // Lắng nghe sự kiện 'updateNotificationsConversation' từ server
+        socket.on('updateNotificationsConversation', (notifications) => {
+            setNotificationConversation(notifications)
+            dispath(addConversation(notifications))
         });
 
         // Lắng nghe sự kiện 'newRequestNotification' từ server

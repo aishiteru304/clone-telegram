@@ -124,4 +124,25 @@ export class NotificationService {
         }
     }
 
+    async getNotificationsConversationById(id: string) {
+        try {
+            // Truy vấn người dùng từ cơ sở dữ liệu và populate trường 'friends'
+            const existNotification = await this.notifyModel
+                .findOne({ user: id })
+                .exec();
+
+            if (!existNotification) {
+                throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+            }
+            return existNotification.conversation;
+        } catch (error) {
+            // Kiểm tra nếu lỗi là một HttpException
+            if (error instanceof HttpException) {
+                throw error;
+            }
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
 }
