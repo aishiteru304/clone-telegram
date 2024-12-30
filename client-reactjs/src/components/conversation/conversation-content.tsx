@@ -160,7 +160,7 @@ const ConversationContent = ({ receiverIds }: { receiverIds: string[] }) => {
             </footer>
 
             {/* Modal to show file content */}
-            <ModalFile file={messageFile} isShowModal={isShowModal} onClose={() => setIsShowModal(false)} />
+            <ModalFile dataModal={{ file: messageFile, conversationId: id, accessToken: accessToken.accessToken, receiverIds }} isShowModal={isShowModal} onClose={() => setIsShowModal(false)} />
         </>
     )
 }

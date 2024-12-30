@@ -5,15 +5,16 @@ import { Button, Form, Input, message } from "antd";
 import { login } from "./api";
 import useLocalStorage from "../../hooks/useLocalStorage";
 import { ACCESSTOKEN_KEY, INFORMATION_KEY } from "../../app/constant";
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
-    const { setLocalStorage } = useLocalStorage()
+    const { setLocalStorage, getLocalStorage } = useLocalStorage()
     const { control, handleSubmit, formState: { errors } } = useForm({
         resolver: yupResolver(LoginSchema),
     });
     const [isLoading, setIsLoading] = useState(false)
+    const navigate = useNavigate()
 
     const handleLogin = (data: LoginFormValues) => {
         setIsLoading(true)
@@ -31,6 +32,13 @@ const LoginPage = () => {
             })
             .finally(() => setIsLoading(false))
     }
+
+    useEffect(() => {
+        const accessToken = getLocalStorage(ACCESSTOKEN_KEY)
+        if (accessToken) {
+            navigate("/")
+        }
+    }, [])
 
     return (
 

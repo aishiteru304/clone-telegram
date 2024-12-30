@@ -5,6 +5,7 @@ import { Message, MessageSchema } from './schemas/message.schema';
 import { JwtModule } from '@nestjs/jwt';
 import { ConversationsModule } from 'src/conversations/conversations.module';
 import { NotificationModule } from 'src/notification/notification.module';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Module({
   imports: [
@@ -13,7 +14,7 @@ import { NotificationModule } from 'src/notification/notification.module';
     ConversationsModule,
     NotificationModule
   ],
-  providers: [MessageService],
+  providers: [MessageService, CloudinaryService],
   exports: [MessageService]
 })
 export class MessageModule { }

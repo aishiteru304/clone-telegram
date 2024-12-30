@@ -1,3 +1,4 @@
+import { Optional } from '@nestjs/common';
 import { IsNotEmpty } from 'class-validator';
 
 export class CreateMessageDto {
@@ -13,7 +14,10 @@ export class CreateMessageDto {
     @IsNotEmpty()
     type: string;
 
-    @IsNotEmpty()
+    @Optional()
     message: string;
+
+    @Optional()
+    file: string;
 
 }

@@ -8,6 +8,8 @@ import { Message } from './schemas/message.schema';
 import { SeenMessageDto } from './dto/seen-message.dto';
 import { ConversationsService } from 'src/conversations/conversations.service';
 import { Notify } from 'src/notification/schemas/notifycation.schema';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { TypeMessage } from 'src/enums/type-message.enum';
 
 @Injectable()
 export class MessageService {
@@ -17,6 +19,7 @@ export class MessageService {
         @InjectModel(Notify.name) private readonly notifyModel: Model<Notify>,
         private readonly conversationService: ConversationsService,
         private readonly jwtService: JwtService,
+        private readonly cloudinaryService: CloudinaryService
     ) { }
     async createMessage(createMessageDto: CreateMessageDto) {
         try {
@@ -45,18 +48,36 @@ export class MessageService {
                 }
             );
 
-            const newMessage = await this.messageModel.create({
-                sender: decoded.id,
-                conversationId: createMessageDto.conversationId,
-                type: createMessageDto.type,
-                receiver: createMessageDto.receiverIds,
-                message: createMessageDto.message
-            });
 
-            conversation.messages.unshift(newMessage)
-            await conversation.save()
+            // Upload ảnh hoặc video 
+            if (createMessageDto.type == TypeMessage.TEXT) {
+                const newMessage = await this.messageModel.create({
+                    sender: decoded.id,
+                    conversationId: createMessageDto.conversationId,
+                    type: createMessageDto.type,
+                    receiver: createMessageDto.receiverIds,
+                    message: createMessageDto.message
+                });
 
+                conversation.messages.unshift(newMessage)
+                await conversation.save()
+            }
+            if (createMessageDto.type == TypeMessage.IMAGE || createMessageDto.type == TypeMessage.VIDEO) {
 
+                const base64Data = createMessageDto.file.split(';base64,').pop();
+                const fileUrl = await this.cloudinaryService.uploadFile(base64Data);
+
+                const newMessage = await this.messageModel.create({
+                    sender: decoded.id,
+                    conversationId: createMessageDto.conversationId,
+                    type: createMessageDto.type,
+                    receiver: createMessageDto.receiverIds,
+                    message: fileUrl.url
+                });
+
+                conversation.messages.unshift(newMessage)
+                await conversation.save()
+            }
 
             // Thêm thông báo 
             for (const receiverId of createMessageDto.receiverIds) {
@@ -164,4 +185,6 @@ export class MessageService {
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
 }
