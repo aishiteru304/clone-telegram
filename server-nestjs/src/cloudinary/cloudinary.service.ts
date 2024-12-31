@@ -22,9 +22,27 @@ import * as streamifier from 'streamifier';
 
 @Injectable()
 export class CloudinaryService {
-    uploadFile(base64File: string): Promise<CloudinaryResponse> {
+    // uploadFile(base64File: string): Promise<CloudinaryResponse> {
+    //     return new Promise<CloudinaryResponse>((resolve, reject) => {
+    //         const uploadStream = cloudinary.uploader.upload_stream(
+    //             (error, result) => {
+    //                 if (error) return reject(error);
+    //                 resolve(result);
+    //             },
+    //         );
+
+    //         // Chuyển Base64 thành Buffer
+    //         const buffer = Buffer.from(base64File, 'base64');
+
+    //         // Tạo stream từ buffer
+    //         streamifier.createReadStream(buffer).pipe(uploadStream);
+    //     });
+    // }
+
+    uploadFile(base64File: string, type: 'image' | 'video'): Promise<CloudinaryResponse> {
         return new Promise<CloudinaryResponse>((resolve, reject) => {
             const uploadStream = cloudinary.uploader.upload_stream(
+                { resource_type: type, chunk_size: 6000000 }, // Hỗ trợ video và ảnh
                 (error, result) => {
                     if (error) return reject(error);
                     resolve(result);

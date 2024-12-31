@@ -9,7 +9,10 @@ import { CreateMessageDto } from 'src/message/dto/create-message.dto';
 import { NotificationService } from 'src/notification/notification.service';
 import { SeenMessageDto } from 'src/message/dto/seen-message.dto';
 
-@WebSocketGateway({ cors: true })
+@WebSocketGateway({
+  cors: true,
+  maxHttpBufferSize: 15 * 1024 * 1024, // 10MB
+})
 export class ConversationsGateway {
 
   @WebSocketServer() server: Server;

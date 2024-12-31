@@ -34,6 +34,20 @@ const PrivateSender = ({ item }: { item: any }) => {
                 </li>
 
             }
+            {
+                item?.type == TypeMessage.VIDEO && <li className=" list-none block">
+                    <div className="ml-[200px]  text-right px-4">
+                        <div className="text-white bg-primary px-6 pt-2 pb-4 rounded-lg inline-block relative">
+                            {seen && <LiaCheckDoubleSolid className=" absolute right-0 bottom-0" />}
+                            <p className="absolute right-5 bottom-0 text-xs">{time}</p>
+                            {item.message ?
+                                <video src={item.message} controls className="w-52 rounded-lg" />
+                                : <p>"Message has been recalled"</p>}
+                        </div>
+                    </div>
+                </li>
+
+            }
         </React.Fragment>
     )
 }

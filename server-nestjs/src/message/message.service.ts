@@ -49,7 +49,6 @@ export class MessageService {
             );
 
 
-            // Upload ảnh hoặc video 
             if (createMessageDto.type == TypeMessage.TEXT) {
                 const newMessage = await this.messageModel.create({
                     sender: decoded.id,
@@ -62,10 +61,28 @@ export class MessageService {
                 conversation.messages.unshift(newMessage)
                 await conversation.save()
             }
-            if (createMessageDto.type == TypeMessage.IMAGE || createMessageDto.type == TypeMessage.VIDEO) {
 
+            // Upload ảnh
+            if (createMessageDto.type == TypeMessage.IMAGE) {
                 const base64Data = createMessageDto.file.split(';base64,').pop();
-                const fileUrl = await this.cloudinaryService.uploadFile(base64Data);
+                const fileUrl = await this.cloudinaryService.uploadFile(base64Data, "image");
+
+                const newMessage = await this.messageModel.create({
+                    sender: decoded.id,
+                    conversationId: createMessageDto.conversationId,
+                    type: createMessageDto.type,
+                    receiver: createMessageDto.receiverIds,
+                    message: fileUrl.url
+                });
+
+                conversation.messages.unshift(newMessage)
+                await conversation.save()
+            }
+
+            // Upload video 
+            if (createMessageDto.type == TypeMessage.VIDEO) {
+                const base64Data = createMessageDto.file.split(';base64,').pop();
+                const fileUrl = await this.cloudinaryService.uploadFile(base64Data, "video");
 
                 const newMessage = await this.messageModel.create({
                     sender: decoded.id,
@@ -185,6 +202,7 @@ export class MessageService {
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
 
 }

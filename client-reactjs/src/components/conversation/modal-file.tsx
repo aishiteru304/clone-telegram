@@ -1,12 +1,20 @@
-import { Button, Modal } from 'antd'
+import { Button, message, Modal } from 'antd'
 import { TypeMessage } from '../../app/enums';
 import socket from '../../socket';
+import { MAX_SIZE_MB } from '../../app/constant';
 
 const ModalFile = ({ dataModal, isShowModal, onClose, }: { dataModal: any, isShowModal: boolean, onClose: () => void }) => {
 
     const handleSendFile = () => {
 
         if (dataModal.file) {
+            const fileSizeMB = ((dataModal.file.size * 4 / 3) + 4) / (1024 * 1024);
+            if (fileSizeMB > MAX_SIZE_MB) {
+                message.error(`File quá lớn! Dung lượng tối đa là ${MAX_SIZE_MB}MB.`);
+                return;
+            }
+
+
             const reader = new FileReader();
 
             reader.onload = () => {

@@ -41,6 +41,24 @@ const ReceiverMessage = ({ item }: { item: any }) => {
                     </div>
                 </li>
             }
+            {
+                item?.type == TypeMessage.VIDEO && <li className=" list-none block">
+                    <div className="mr-[200px]  text-left pl-[60px] relative flex gap-2">
+                        <div className={`w-10 h-10 ${bgColor} rounded-full absolute left-2 flex items-center justify-center text-white`}>
+                            {item.sender.fullName.charAt(0).toUpperCase()}
+                        </div>
+                        <div className={`text-white ${bgColor} px-4 pt-2 pb-4 rounded-lg relative`}>
+                            <p className="text-sm">{item.sender.fullName}</p>
+                            {item.message ?
+                                <video src={item.message} controls className="w-28 rounded-lg" />
+                                : <p className=" inline-block"> "Message has been recalled"</p>
+                            }
+                            <p className="absolute right-1 bottom-0 text-xs">{time}</p>
+                        </div>
+
+                    </div>
+                </li>
+            }
         </React.Fragment>
     )
 }
