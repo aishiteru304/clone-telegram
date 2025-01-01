@@ -8,6 +8,7 @@ import { MessageService } from 'src/message/message.service';
 import { CreateMessageDto } from 'src/message/dto/create-message.dto';
 import { NotificationService } from 'src/notification/notification.service';
 import { SeenMessageDto } from 'src/message/dto/seen-message.dto';
+import { HiddenConversationDto } from './dto/hidden-conversation.dto';
 
 @WebSocketGateway({
   cors: true,
@@ -249,6 +250,21 @@ export class ConversationsGateway {
 
     }
   }
+
+  // Hàm hidden conversation
+  @SubscribeMessage('hiddenConversation')
+  async hiddenConversation(@MessageBody() hiddenConversationDto: HiddenConversationDto, @ConnectedSocket() client: Socket) {
+    try {
+      await this.conversationsService.hiddenConversation(hiddenConversationDto)
+      const conversationSender = await this.conversationsService.getConversationListByUserId(this.connectedUsers.get(client.id))
+      client.emit("updateConversations", conversationSender)
+
+    } catch (error) {
+      // Xử lý lỗi nếu có
+      client.emit('error', error);
+    }
+  }
+
 
   //.....................................................Notification...................................................................
   @SubscribeMessage('seenFriendRequest')

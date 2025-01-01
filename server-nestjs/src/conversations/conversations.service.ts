@@ -5,7 +5,8 @@ import { Model } from 'mongoose';
 import { User } from 'src/user/schemas/user.schema';
 import { Conversation } from './schemas/conversation.schema';
 import { TypeConversation } from 'src/enums/type-conversation.enum';
-// import { JwtService } from '@nestjs/jwt';
+import { HiddenConversationDto } from './dto/hidden-conversation.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class ConversationsService {
@@ -13,7 +14,7 @@ export class ConversationsService {
     constructor(
         @InjectModel(User.name) private readonly userModel: Model<User>,
         @InjectModel(Conversation.name) private readonly conversationModel: Model<Conversation>,
-        // private readonly jwtService: JwtService
+        private readonly jwtService: JwtService
     ) { }
 
     async createConversation(createConversationDto: CreateConversationDto) {
@@ -263,6 +264,41 @@ export class ConversationsService {
             // Kiểm tra nếu lỗi là một HttpException
             if (error instanceof HttpException) {
                 throw error;
+            }
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    async hiddenConversation(hiddenConversationDto: HiddenConversationDto) {
+
+        try {
+            // Giải mã token và lấy userId
+            const decoded = this.jwtService.verify(hiddenConversationDto.accessToken, { secret: process.env.JWT_SECRET });
+
+            const conversation = await this.conversationModel.findById(hiddenConversationDto.conversationId)
+
+            // Kiểm tra xem decoded.id đã tồn tại trong mảng hidden hay chưa
+            if (!conversation.hidden.includes(decoded.id)) {
+                conversation.hidden.push(decoded.id); // Thêm userId vào mảng hidden
+                await conversation.save(); // Lưu lại tài liệu
+            }
+            // Trả về phản hồi thành công
+            return {
+                statusCode: HttpStatus.OK,
+            };
+        } catch (error) {
+            // Kiểm tra nếu lỗi là một HttpException
+            if (error instanceof HttpException) {
+                throw error;
+            }
+            // Xử lý lỗi JWT cụ thể (nếu cần)
+            if (error.name === 'TokenExpiredError') {
+                throw new HttpException('Token has expired', HttpStatus.UNAUTHORIZED);
+            }
+
+            if (error.name === 'JsonWebTokenError') {
+                throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
             }
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
         }
