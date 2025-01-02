@@ -10,6 +10,7 @@ import { ConversationsService } from 'src/conversations/conversations.service';
 import { Notify } from 'src/notification/schemas/notifycation.schema';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { TypeMessage } from 'src/enums/type-message.enum';
+import { RecallsMessageDto } from './dto/recalls-message.dto';
 
 @Injectable()
 export class MessageService {
@@ -48,6 +49,11 @@ export class MessageService {
                 }
             );
 
+            // Delete hidden conversation
+            await this.conversationModel.updateOne(
+                { _id: conversation._id }, // Find the document by its ID
+                { $set: { hidden: [] } } // Set `hidden` to an empty array
+            );
 
             if (createMessageDto.type == TypeMessage.TEXT) {
                 const newMessage = await this.messageModel.create({
@@ -203,6 +209,56 @@ export class MessageService {
         }
     }
 
+    async recallsMessage(recallsMessageDto: RecallsMessageDto) {
+        try {
+            // Giải mã token và lấy userId
+            const decoded = this.jwtService.verify(recallsMessageDto.accessToken, { secret: process.env.JWT_SECRET });
 
+            const message = await this.messageModel.findOne({
+                _id: recallsMessageDto.messageId,
+                sender: decoded.id
+            })
+
+            if (!message) {
+                throw new HttpException('Message does not exist', HttpStatus.NOT_FOUND);
+            }
+            message.message = ""
+            await message.save()
+
+            // Truy vấn conversation từ cơ sở dữ liệu và populate message
+            const messages = await this.conversationModel.findOne({
+                _id: message.conversationId,
+                isBlock: false,     // điều kiện bổ sung
+            })
+                .populate({
+                    path: 'messages', // Populate messages
+                    options: { sort: { createdAt: -1 } }, // Sắp xếp mới trước
+                    populate: [
+                        { path: 'sender', select: 'fullName type' }, // Populate sender bên trong messages
+                        { path: 'receiver', select: 'fullName type' }, // Populate receiver bên trong messages
+                        { path: 'conversationId', select: 'members' }, // Populate receiver bên trong messages
+                    ],
+                })
+                .exec();
+
+            return { messages, receiver: message.receiver, conversationId: message.conversationId }
+
+        } catch (error) {
+            // Kiểm tra nếu lỗi là một HttpException
+            if (error instanceof HttpException) {
+                throw error;
+            }
+            // Xử lý lỗi JWT cụ thể (nếu cần)
+            if (error.name === 'TokenExpiredError') {
+                throw new HttpException('Token has expired', HttpStatus.UNAUTHORIZED);
+            }
+
+            if (error.name === 'JsonWebTokenError') {
+                throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
+            }
+
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
 }

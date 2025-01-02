@@ -9,6 +9,7 @@ import { CreateMessageDto } from 'src/message/dto/create-message.dto';
 import { NotificationService } from 'src/notification/notification.service';
 import { SeenMessageDto } from 'src/message/dto/seen-message.dto';
 import { HiddenConversationDto } from './dto/hidden-conversation.dto';
+import { RecallsMessageDto } from 'src/message/dto/recalls-message.dto';
 
 @WebSocketGateway({
   cors: true,
@@ -345,6 +346,24 @@ export class ConversationsGateway {
     }
   }
 
+  // Hàm recalls message
+  @SubscribeMessage('recallsMessage')
+  async recallsMessage(@MessageBody() recallsMessageDto: RecallsMessageDto, @ConnectedSocket() client: Socket) {
+    try {
+      const recalls = await this.messageService.recallsMessage(recallsMessageDto)
+      const receiverIds = recalls.receiver.map((item: any) => item._id.toString())
+      client.emit('newMessage', { conversationId: recalls.conversationId, newMessages: recalls.messages });
+
+      // Gửi tin nhắn đến từng socketId
+      receiverIds.forEach((socketId) => {
+        this.server.to(socketId).emit('newMessage', { conversationId: recalls.conversationId, newMessages: recalls.messages });
+      });
+
+    } catch (error) {
+      // Xử lý lỗi nếu có
+      client.emit('error', error);
+    }
+  }
   //.....................................................Online/Offline...................................................................
 
   // Hàm kiểm tra user có online không

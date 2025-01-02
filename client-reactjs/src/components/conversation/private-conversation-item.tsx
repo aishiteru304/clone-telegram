@@ -47,7 +47,7 @@ const PrivateConversationItem = ({ conversation, index, notify }: { conversation
                                         {member.fullName.charAt(0).toUpperCase()}
                                     </div>
                                     <span key={index}>{member.fullName} </span>
-                                    {notify && <span className=" absolute right-1 bg-red-500 px-2 py-1 rounded-md text-xs text-white">new</span>}
+                                    {notify && <span className=" absolute right-8 bg-red-500 px-2 py-1 rounded-md text-xs text-white">new</span>}
                                     <div className="flex items-center cursor-pointer  rounded-xl absolute right-0">
                                         <Dropdown
                                             menu={{
