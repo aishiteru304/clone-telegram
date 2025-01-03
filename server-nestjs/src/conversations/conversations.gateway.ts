@@ -10,6 +10,7 @@ import { NotificationService } from 'src/notification/notification.service';
 import { SeenMessageDto } from 'src/message/dto/seen-message.dto';
 import { HiddenConversationDto } from './dto/hidden-conversation.dto';
 import { RecallsMessageDto } from 'src/message/dto/recalls-message.dto';
+import { DeleteMessageDto } from 'src/message/dto/delete-message.dto';
 
 @WebSocketGateway({
   cors: true,
@@ -364,6 +365,21 @@ export class ConversationsGateway {
       client.emit('error', error);
     }
   }
+
+  // Hàm delete message
+  @SubscribeMessage('deleteMessage')
+  async deleteMessage(@MessageBody() deleteMessageDto: DeleteMessageDto, @ConnectedSocket() client: Socket) {
+    try {
+      await this.messageService.deleteMessage(deleteMessageDto)
+      const conversationSender = await this.conversationsService.getConversationListByUserId(this.connectedUsers.get(client.id))
+      client.emit("updateConversations", conversationSender)
+
+    } catch (error) {
+      // Xử lý lỗi nếu có
+      client.emit('error', error);
+    }
+  }
+
   //.....................................................Online/Offline...................................................................
 
   // Hàm kiểm tra user có online không

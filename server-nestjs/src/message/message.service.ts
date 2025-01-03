@@ -11,6 +11,7 @@ import { Notify } from 'src/notification/schemas/notifycation.schema';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { TypeMessage } from 'src/enums/type-message.enum';
 import { RecallsMessageDto } from './dto/recalls-message.dto';
+import { DeleteMessageDto } from './dto/delete-message.dto';
 
 @Injectable()
 export class MessageService {
@@ -261,4 +262,50 @@ export class MessageService {
         }
     }
 
+
+    async deleteMessage(deleteMessageDto: DeleteMessageDto) {
+
+        try {
+            // Giải mã token và lấy userId
+            const decoded = this.jwtService.verify(deleteMessageDto.accessToken, { secret: process.env.JWT_SECRET });
+
+            const conversation = await this.conversationModel.findById(deleteMessageDto.conversationId)
+
+            // Kiểm tra xem decoded.id đã tồn tại trong mảng hidden hay chưa
+            if (!conversation.hidden.includes(decoded.id)) {
+                conversation.hidden.push(decoded.id); // Thêm userId vào mảng hidden
+                await conversation.save(); // Lưu lại tài liệu
+            }
+
+            // Tìm tất cả các message có conversationId = deleteMessageDto.conversationId
+            const messages = await this.messageModel.find({ conversationId: deleteMessageDto.conversationId });
+
+            // Lặp qua từng message và thêm userId vào blocker
+            for (const message of messages) {
+                if (!message.blocker.includes(decoded.id)) {
+                    message.blocker.push(decoded.id); // Thêm userId vào mảng blocker
+                    await message.save(); // Lưu lại tài liệu
+                }
+            }
+
+            // Trả về phản hồi thành công
+            return {
+                statusCode: HttpStatus.OK,
+            };
+        } catch (error) {
+            // Kiểm tra nếu lỗi là một HttpException
+            if (error instanceof HttpException) {
+                throw error;
+            }
+            // Xử lý lỗi JWT cụ thể (nếu cần)
+            if (error.name === 'TokenExpiredError') {
+                throw new HttpException('Token has expired', HttpStatus.UNAUTHORIZED);
+            }
+
+            if (error.name === 'JsonWebTokenError') {
+                throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
+            }
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

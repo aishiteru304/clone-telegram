@@ -30,6 +30,14 @@ const PrivateConversationItem = ({ conversation, index, notify }: { conversation
         navigate("/")
 
     }
+
+    const handleDeleteMessage = () => {
+        if (!accessToken) return
+        socket.emit('deleteMessage', { conversationId: conversation._id, accessToken: accessToken.accessToken });
+        navigate("/")
+
+    }
+
     return (
         <Link
             to={`/conversation/${conversation._id}`} key={conversation._id}
@@ -56,6 +64,12 @@ const PrivateConversationItem = ({ conversation, index, notify }: { conversation
                                                         key: '0',
                                                         label: (
                                                             <button className="text-red-500" onClick={(e) => { e.stopPropagation(), handleHiddenConversation() }}>Hidden Conversation</button>
+                                                        ),
+                                                    },
+                                                    {
+                                                        key: '0',
+                                                        label: (
+                                                            <button className="text-red-500" onClick={(e) => { e.stopPropagation(), handleDeleteMessage() }}>Delete Message</button>
                                                         ),
                                                     },
                                                 ]

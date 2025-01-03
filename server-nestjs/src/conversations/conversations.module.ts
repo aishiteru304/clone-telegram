@@ -11,7 +11,7 @@ import { JwtAuthUserMiddleware } from 'src/middlewares/authUser';
   imports: [
     MongooseModule.forFeature([{ name: Conversation.name, schema: ConversationSchema }]),
     UserModule,
-    JwtModule
+    JwtModule,
   ],
   providers: [ConversationsService],
   controllers: [ConversationsController],

@@ -6,7 +6,7 @@ import EmojiPicker from "emoji-picker-react";
 import ModalFile from "./modal-file";
 import { TypeMessage } from "../../app/enums";
 import useLocalStorage from "../../hooks/useLocalStorage";
-import { ACCESSTOKEN_KEY } from "../../app/constant";
+import { ACCESSTOKEN_KEY, INFORMATION_KEY } from "../../app/constant";
 import socket from "../../socket";
 import useHandleResponseError from "../../hooks/handleResponseError";
 import { message } from "antd";
@@ -22,6 +22,7 @@ const ConversationContent = ({ receiverIds }: { receiverIds: string[] }) => {
     const [isShowModal, setIsShowModal] = useState<boolean>(false)
     const { getLocalStorage } = useLocalStorage()
     const accessToken = getLocalStorage(ACCESSTOKEN_KEY)
+    const information = getLocalStorage(INFORMATION_KEY)
     const handleResponseError = useHandleResponseError()
     const dateRef = useRef(null)
 
@@ -93,7 +94,7 @@ const ConversationContent = ({ receiverIds }: { receiverIds: string[] }) => {
             <div className="h-screen overflow-hidden py-20">
                 <div className="flex flex-col-reverse gap-4 h-full overflow-y-auto custom-scrollbar">
                     {
-                        data.map((item: any, index) => {
+                        data.filter((it: any) => !it.blocker.includes(information?.userId)).map((item: any, index) => {
                             // Nếu là tin nhắn cuối thì thêm ngày vào
                             if (index + 1 == data.length) {
                                 dateRef.current = null
