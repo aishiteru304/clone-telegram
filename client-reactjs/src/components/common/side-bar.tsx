@@ -16,6 +16,7 @@ import PrivateConversationItem from "../conversation/private-conversation-item";
 import { TypeConversation } from "../../enums/type-conversation.enum";
 import { useDispatch } from "react-redux";
 import { addConversation } from "../../redux/notification-slice";
+import GroupConversationItem from "../conversation/group-conversation-item";
 
 const SideBar = () => {
     const { control, handleSubmit, formState: { errors }, reset } = useForm({
@@ -139,7 +140,7 @@ const SideBar = () => {
                                             <PrivateConversationItem conversation={conversation} key={index} index={index} notify={notify} />
                                         )
                                     }
-                                    return null
+                                    return <GroupConversationItem conversation={conversation} key={index} index={index} notify={notify} />
                                 }
                                 )}
                         </div>

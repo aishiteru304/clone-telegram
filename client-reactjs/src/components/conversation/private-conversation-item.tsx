@@ -67,7 +67,7 @@ const PrivateConversationItem = ({ conversation, index, notify }: { conversation
                                                         ),
                                                     },
                                                     {
-                                                        key: '0',
+                                                        key: '1',
                                                         label: (
                                                             <button className="text-red-500" onClick={(e) => { e.stopPropagation(), handleDeleteMessage() }}>Delete Message</button>
                                                         ),
