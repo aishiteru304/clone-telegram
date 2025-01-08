@@ -17,6 +17,8 @@ import { TypeConversation } from "../../enums/type-conversation.enum";
 import { useDispatch } from "react-redux";
 import { addConversation } from "../../redux/notification-slice";
 import GroupConversationItem from "../conversation/group-conversation-item";
+import { IoMdPersonAdd } from "react-icons/io";
+import CreateGroupModal from "../conversation/create-group-modal";
 
 const SideBar = () => {
     const { control, handleSubmit, formState: { errors }, reset } = useForm({
@@ -32,6 +34,7 @@ const SideBar = () => {
     const [notification, setNotification] = useState<number>(0)
     const [notificationConversation, setNotificationConversation] = useState<string[]>([])
     const dispath = useDispatch()
+    const [isShowGroupModal, setIsShowGroupModal] = useState(false)
 
     useEffect(() => {
         Promise.all([getConversations(), getNotifications()])
@@ -123,6 +126,7 @@ const SideBar = () => {
                             </Button>
                         </Form.Item>
                     </Form>
+                    <IoMdPersonAdd className=" cursor-pointer text-xl" onClick={() => setIsShowGroupModal(true)} />
                 </search>
                 <div >
                     {
@@ -170,6 +174,7 @@ const SideBar = () => {
                 </div>
 
             </Drawer>
+            <CreateGroupModal isShowGroupModal={isShowGroupModal} onClose={() => setIsShowGroupModal(false)} />
         </>
     )
 }
