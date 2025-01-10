@@ -7,6 +7,7 @@ import { Conversation } from './schemas/conversation.schema';
 import { TypeConversation } from 'src/enums/type-conversation.enum';
 import { HiddenConversationDto } from './dto/hidden-conversation.dto';
 import { JwtService } from '@nestjs/jwt';
+import { CreateGroupDto } from './dto/create-group-conversation.dto';
 
 @Injectable()
 export class ConversationsService {
@@ -69,6 +70,76 @@ export class ConversationsService {
             // Kiểm tra nếu lỗi là một HttpException
             if (error instanceof HttpException) {
                 throw error;
+            }
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    async createGroupConversation(createGroupDto: CreateGroupDto) {
+
+        try {
+
+            // Giải mã token và lấy userId
+            const decoded = this.jwtService.verify(createGroupDto.accessToken, { secret: process.env.JWT_SECRET });
+
+            // Lấy dữ liệu từ body
+            const { phones } = createGroupDto;
+
+            if (phones.length < 2) {
+                throw new HttpException('Group needs more than 2 members', HttpStatus.BAD_REQUEST);
+            }
+
+            // Kiểm tra các userIds có tồn tại trong database
+            const users = await this.userModel.find({ phone: { $in: phones } });
+
+            // Kiểm tra xem decode.id có tồn tại trong danh sách users
+            const myselfUser = users.find(user => user._id.toString() === decoded.id);
+
+            if (myselfUser) {
+                throw new HttpException('Can not add myself to group', HttpStatus.BAD_REQUEST);
+            }
+
+            if (users.length !== phones.length) {
+                throw new HttpException('One or more users do not exist', HttpStatus.BAD_REQUEST);
+            }
+
+            // Tạo mảng userIds
+            const userIds = [decoded.id, ...users.map(user => user._id.toString())];
+
+            // Kiểm tra xem đã có conversation với các userIds này chưa
+            const existingConversation = await this.conversationModel.findOne({
+                members: { $all: userIds }, // Kiểm tra members chứa tất cả userIds
+                $expr: { $eq: [{ $size: "$members" }, userIds.length] }, // Kiểm tra độ dài members
+            });
+
+
+            if (existingConversation) {
+                throw new HttpException('Group already exists', HttpStatus.BAD_REQUEST);
+            }
+
+
+            // Tạo mới group conversation 
+            const conversation = new this.conversationModel({
+                members: userIds,
+                type: TypeConversation.GROUP,
+                name: "New Group"
+            });
+            await conversation.save();
+
+            // Trả về phản hồi thành công
+            return userIds
+        } catch (error) {
+            // Kiểm tra nếu lỗi là một HttpException
+            if (error instanceof HttpException) {
+                throw error;
+            }
+            // Xử lý lỗi JWT cụ thể (nếu cần)
+            if (error.name === 'TokenExpiredError') {
+                throw new HttpException('Token has expired', HttpStatus.UNAUTHORIZED);
+            }
+
+            if (error.name === 'JsonWebTokenError') {
+                throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
             }
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
         }

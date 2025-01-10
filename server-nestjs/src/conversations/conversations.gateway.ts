@@ -11,6 +11,7 @@ import { SeenMessageDto } from 'src/message/dto/seen-message.dto';
 import { HiddenConversationDto } from './dto/hidden-conversation.dto';
 import { RecallsMessageDto } from 'src/message/dto/recalls-message.dto';
 import { DeleteMessageDto } from 'src/message/dto/delete-message.dto';
+import { CreateGroupDto } from './dto/create-group-conversation.dto';
 
 @WebSocketGateway({
   cors: true,
@@ -284,6 +285,29 @@ export class ConversationsGateway {
     }
   }
 
+  //.....................................................Conversation...................................................................
+  // Hàm create group conversation
+  @SubscribeMessage('createGroupConversation')
+  async createGroupConversation(@MessageBody() createGroupDto: CreateGroupDto, @ConnectedSocket() client: Socket) {
+    try {
+      const userIds = await this.conversationsService.createGroupConversation(createGroupDto)
+      const socketIds = await this.findClientIds(userIds)
+
+      // Sử dụng Promise.all để lấy conversationReceiver cho tất cả userIds
+      const conversationMembers = await Promise.all(
+        userIds.map(userId => this.conversationsService.getConversationListByUserId(userId))
+      );
+
+      // Gửi tin nhắn đến từng socketId
+      socketIds.forEach((socketId, index) => {
+        this.server.to(socketId).emit('updateConversations', conversationMembers[index]);
+      });
+    } catch (error) {
+      // Xử lý lỗi nếu có
+      client.emit('error', error);
+
+    }
+  }
   //.....................................................Message...................................................................
 
   // Hàm create message
