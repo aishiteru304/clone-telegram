@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import ConversationContent from "../../../components/conversation/conversation-content"
 import { useNavigate, useParams } from "react-router-dom"
 import useLocalStorage from "../../../hooks/useLocalStorage"
@@ -14,13 +14,17 @@ const ConversationGroupPage = () => {
     const [groupName, setGroupName] = useState<string>("")
     const navigate = useNavigate()
     const handleResponseError = useHandleResponseError()
+    const receiverIdRef = useRef<string[]>([])
 
     useEffect(() => {
         if (!id || !userInfor) return
         getConversationById(id)
             .then(res => {
                 setGroupName(res.data.name)
-                // const receiver = res.data.members.filter((member: any) => member._id != userInfor.userId)
+                const filteredIds = res.data.members
+                    .filter((member: any) => member._id !== userInfor.userId)
+                    .map((member: any) => member._id);
+                receiverIdRef.current = filteredIds
             })
             .catch(err => {
                 if (err?.status == 500 || err?.status == 404)
@@ -41,7 +45,7 @@ const ConversationGroupPage = () => {
                         </div>
                     </header>
 
-                    <ConversationContent receiverIds={[]} />
+                    <ConversationContent receiverIds={receiverIdRef.current} />
                 </div>
             }
         </React.Fragment>

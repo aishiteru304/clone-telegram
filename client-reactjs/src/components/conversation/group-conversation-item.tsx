@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom"
 import useLocalStorage from "../../hooks/useLocalStorage"
-import { ACCESSTOKEN_KEY, COLORS_LIST, INFORMATION_KEY, MAX_COLOR } from "../../app/constant"
+import { ACCESSTOKEN_KEY, COLORS_LIST, MAX_COLOR } from "../../app/constant"
 import { useSelector } from "react-redux"
 import { RootState } from "../../redux/store"
 import socket from "../../socket"
@@ -9,7 +9,6 @@ import { BsThreeDotsVertical } from "react-icons/bs"
 
 const GroupConversationItem = ({ conversation, index, notify }: { conversation: any, index: number, notify: boolean }) => {
     const { getLocalStorage } = useLocalStorage()
-    const information = getLocalStorage(INFORMATION_KEY)
     const accessToken = getLocalStorage(ACCESSTOKEN_KEY)
     const bgColor = COLORS_LIST[index % MAX_COLOR]
 
@@ -18,23 +17,23 @@ const GroupConversationItem = ({ conversation, index, notify }: { conversation: 
     const navigate = useNavigate()
 
     const handleSeenMessage = () => {
-        // if (!conversationNotifications.includes(conversation._id) || !accessToken) return
-        // // Lắng nghe sự kiện 'seenMessage' từ server
-        // const data = { conversationId: conversation._id, accessToken: accessToken.accessToken }
-        // socket.emit('seenMessage', data);
+        if (!conversationNotifications.includes(conversation._id) || !accessToken) return
+        // Lắng nghe sự kiện 'seenMessage' từ server
+        const data = { conversationId: conversation._id, accessToken: accessToken.accessToken }
+        socket.emit('seenMessage', data);
     }
 
     const handleHiddenConversation = () => {
-        // if (!accessToken) return
-        // socket.emit('hiddenConversation', { conversationId: conversation._id, accessToken: accessToken.accessToken });
-        // navigate("/")
+        if (!accessToken) return
+        socket.emit('hiddenConversation', { conversationId: conversation._id, accessToken: accessToken.accessToken });
+        navigate("/")
 
     }
 
     const handleDeleteMessage = () => {
-        // if (!accessToken) return
-        // socket.emit('deleteMessage', { conversationId: conversation._id, accessToken: accessToken.accessToken });
-        // navigate("/")
+        if (!accessToken) return
+        socket.emit('deleteMessage', { conversationId: conversation._id, accessToken: accessToken.accessToken });
+        navigate("/")
 
     }
 
